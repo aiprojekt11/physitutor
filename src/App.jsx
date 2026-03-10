@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Calculator, BookOpen, FunctionSquare, ArrowRightLeft, Sparkles, Loader2, RefreshCw, Camera, X, Activity, MessageSquare } from 'lucide-react';
+import { Send, Calculator, BookOpen, FunctionSquare, ArrowRightLeft, Sparkles, Loader2, RefreshCw, Camera, X, Activity, MessageSquare, User } from 'lucide-react';
 
 // --- SYSTEM PROMPT (Zintegrowana Karta Wzorów CKE + Złota Struktura bez rysunków) ---
 const SYSTEM_PROMPT = `Rola: Jesteś ekspertem z fizyki i bardzo cierpliwym nauczycielem przygotowującym polskich uczniów do matury z fizyki na poziomie rozszerzonym. Twoja filozofia to absolutne skupienie na fundamentach i rozwiązywanie zadań krok po kroku w eleganckich, ustrukturyzowanych blokach.
@@ -25,7 +25,7 @@ Zasady, których musisz bezwzględnie przestrzegać:
    - 🔢 Obliczenia i Wynik: Zwięzłe podstawienie liczb w JEDNEJ LINII i odpowiedź końcowa.
    - ⚠️ Typowy błąd (Opcjonalnie): Ostrzeżenie przed częstym błędem maturzystów.`;
 
-const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+const apiKey = ""; // Pusty klucz - w środowisku testowym jest wstrzykiwany automatycznie
 
 export default function App() {
   const [messages, setMessages] = useState([
@@ -183,7 +183,7 @@ export default function App() {
       textHtml = textHtml
         .replace(/</g, '&lt;').replace(/>/g, '&gt;') 
         .replace(/\*\*([^*]+)\*\*/g, '<span class="text-cyan-400 font-bold drop-shadow-[0_0_5px_rgba(34,211,238,0.4)]">$1</span>')
-        .replace(/### (.*)/g, '<span class="block text-base font-bold text-purple-400 mt-4 mb-2 border-b border-purple-500/20 pb-1 uppercase tracking-wider flex items-center gap-2"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>$1</span>')
+        .replace(/### (.*)/g, '<span class="block text-base font-bold text-purple-400 mt-6 mb-3 border-b border-purple-500/20 pb-1 uppercase tracking-wider flex items-center gap-2"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>$1</span>')
         .replace(/## (.*)/g, '<span class="block text-lg font-bold text-cyan-400 mt-6 mb-2 uppercase tracking-widest">$1</span>')
         .replace(/\n/g, '<br />'); 
 
@@ -217,7 +217,7 @@ export default function App() {
 
       <div className="flex h-screen w-full bg-[#020617] text-cyan-50 font-sans overflow-hidden selection:bg-cyan-900 selection:text-cyan-50">
         
-        {/* LEWY PASEK NAWIGACJI (Czysty, ujednolicony styl ikon Sci-Fi) */}
+        {/* LEWY PASEK NAWIGACJI */}
         <div className="w-16 md:w-20 bg-slate-900/80 border-r border-cyan-500/20 flex flex-col items-center py-6 z-20 shrink-0 backdrop-blur-xl hidden md:flex">
           {/* Logo / System Icon */}
           <div className="flex h-10 w-10 bg-[#020617] border border-cyan-400 items-center justify-center rounded-xl mb-8 shadow-[0_0_10px_rgba(34,211,238,0.3)]">
@@ -243,7 +243,7 @@ export default function App() {
           </button>
         </div>
 
-        {/* GŁÓWNY PANEL TERMINALA */}
+        {/* GŁÓWNY PANEL */}
         <div className="flex-1 flex flex-col h-full overflow-hidden relative bg-[#020617]">
           
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#06b6d408_1px,transparent_1px),linear-gradient(to_bottom,#06b6d408_1px,transparent_1px)] bg-[size:2rem_2rem] opacity-40 pointer-events-none z-0"></div>
@@ -267,28 +267,55 @@ export default function App() {
 
           {activeTab === 'chat' ? (
             <div className="flex-1 flex flex-col relative min-h-0">
-              <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 scroll-smooth custom-scrollbar z-10">
+              
+              {/* Obszar Wiadomości - Zmieniony na styl Gemini (pełna szerokość) */}
+              <div ref={messagesContainerRef} className="flex-1 overflow-y-auto pt-4 scroll-smooth custom-scrollbar z-10">
                 {messages.map((msg, idx) => (
-                  <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-4xl rounded-xl p-5 shadow-sm relative ${
-                      msg.role === 'user' 
-                        ? 'bg-cyan-950/30 border border-cyan-500/20 text-cyan-50 rounded-tr-none' 
-                        : 'bg-slate-900/30 border border-purple-500/20 text-cyan-50 rounded-tl-none w-full'
-                    }`}>
-                      {msg.role === 'ai' && <div className="text-[9px] font-mono text-purple-400/40 mb-3 uppercase tracking-widest flex items-center gap-2"><Sparkles className="w-3 h-3" /> System Odpowiedzi</div>}
-                      {msg.imageUrl && (
-                        <img src={msg.imageUrl} alt="Skan" className="max-w-xs rounded border border-cyan-500/20 mb-3 shadow-[0_0_10px_rgba(34,211,238,0.1)] mix-blend-screen" />
-                      )}
-                      <div className="text-sm md:text-base leading-relaxed">{renderText(msg.text)}</div>
+                  <div 
+                    key={idx} 
+                    className={`w-full py-6 md:py-8 ${msg.role === 'ai' ? 'bg-slate-900/40 border-y border-cyan-500/10' : ''}`}
+                  >
+                    <div className="max-w-4xl mx-auto px-4 md:px-8 flex gap-4 md:gap-6">
+                      
+                      {/* Awatar */}
+                      <div className={`w-8 h-8 md:w-10 md:h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm ${
+                        msg.role === 'user' 
+                          ? 'bg-cyan-900/40 border border-cyan-500/30 text-cyan-400' 
+                          : 'bg-[#020617] border border-purple-500/40 text-purple-400 shadow-[0_0_10px_rgba(168,85,247,0.2)]'
+                      }`}>
+                        {msg.role === 'user' ? <User className="w-5 h-5" /> : <Sparkles className="w-5 h-5" />}
+                      </div>
+
+                      {/* Treść Wiadomości */}
+                      <div className="flex-1 space-y-4 overflow-hidden pt-1 md:pt-2">
+                        {msg.role === 'user' ? (
+                          <div className="text-lg md:text-xl text-cyan-50 font-medium leading-relaxed drop-shadow-sm">
+                            {msg.text}
+                            {msg.imageUrl && (
+                              <img src={msg.imageUrl} alt="Skan" className="max-w-sm w-full mt-6 rounded-xl border border-cyan-500/30 shadow-[0_0_20px_rgba(34,211,238,0.15)] mix-blend-screen" />
+                            )}
+                          </div>
+                        ) : (
+                          <div className="text-sm md:text-base leading-relaxed">
+                            {renderText(msg.text)}
+                          </div>
+                        )}
+                      </div>
+
                     </div>
                   </div>
                 ))}
                 
                 {isLoading && (
-                  <div className="flex justify-start animate-in fade-in duration-500">
-                    <div className="max-w-md rounded-xl p-4 bg-slate-900/30 border border-cyan-500/20 flex items-center gap-3 backdrop-blur-md">
-                      <Loader2 className="w-4 h-4 text-cyan-500 animate-spin" />
-                      <span className="text-[10px] font-mono text-cyan-500/80 tracking-widest uppercase animate-pulse">Przetwarzanie danych i formowanie bloków...</span>
+                  <div className="w-full py-6 md:py-8 bg-slate-900/40 border-y border-cyan-500/10 animate-in fade-in duration-500">
+                    <div className="max-w-4xl mx-auto px-4 md:px-8 flex gap-4 md:gap-6">
+                      <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-[#020617] border border-purple-500/40 text-purple-400 flex items-center justify-center shrink-0 shadow-[0_0_10px_rgba(168,85,247,0.2)]">
+                        <Sparkles className="w-5 h-5 animate-pulse" />
+                      </div>
+                      <div className="flex-1 flex items-center gap-3 pt-1 md:pt-2">
+                        <Loader2 className="w-5 h-5 text-cyan-500 animate-spin" />
+                        <span className="text-sm font-mono text-cyan-500/80 tracking-widest uppercase animate-pulse">Analiza równań fizycznych...</span>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -296,6 +323,7 @@ export default function App() {
                 <div className="h-40 md:h-48 w-full shrink-0"></div>
               </div>
 
+              {/* Panel Inputu */}
               <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 z-20 bg-gradient-to-t from-[#020617] via-[#020617]/95 to-transparent pt-32 pointer-events-none">
                 <div className="max-w-4xl mx-auto relative pointer-events-auto">
                   
@@ -314,14 +342,14 @@ export default function App() {
                     </div>
                   )}
 
-                  <form onSubmit={handleSendMessage} className="relative flex items-center gap-2 bg-[#050B14]/80 backdrop-blur-xl border border-cyan-500/20 rounded-xl p-1.5 shadow-[0_0_15px_rgba(6,182,212,0.05)]">
+                  <form onSubmit={handleSendMessage} className="relative flex items-center gap-2 bg-[#050B14]/90 backdrop-blur-xl border border-cyan-500/30 rounded-2xl p-2 shadow-[0_0_25px_rgba(6,182,212,0.1)]">
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="p-2.5 text-cyan-600 hover:text-cyan-400 hover:bg-cyan-900/20 rounded-lg transition-all"
+                      className="p-3 text-cyan-600 hover:text-cyan-300 hover:bg-cyan-900/30 rounded-xl transition-all"
                       title="Załącz zdjęcie"
                     >
-                      <Camera className="w-5 h-5" />
+                      <Camera className="w-6 h-6" />
                     </button>
                     <input 
                       type="file" 
@@ -340,18 +368,21 @@ export default function App() {
                           handleSendMessage(e);
                         }
                       }}
-                      placeholder="Wklej treść zadania lub zrób zdjęcie..."
-                      className="w-full bg-transparent px-3 py-2 text-cyan-50 resize-none h-[44px] focus:outline-none font-sans text-sm placeholder-cyan-900/60 custom-scrollbar"
+                      placeholder="Napisz do PhysiTutor..."
+                      className="w-full bg-transparent px-3 py-3 text-cyan-50 resize-none h-[52px] focus:outline-none font-sans text-base placeholder-cyan-900/60 custom-scrollbar"
                     />
                     
                     <button
                       type="submit"
                       disabled={isLoading || (!inputValue.trim() && !selectedImage)}
-                      className="bg-cyan-600 hover:bg-cyan-500 text-[#020617] p-2.5 rounded-lg transition-all disabled:opacity-30 disabled:bg-cyan-900 shadow-[0_0_8px_rgba(34,211,238,0.2)]"
+                      className="bg-cyan-600 hover:bg-cyan-500 text-[#020617] p-3 rounded-xl transition-all disabled:opacity-30 disabled:bg-cyan-900 shadow-[0_0_10px_rgba(34,211,238,0.2)]"
                     >
-                      <Send className="w-5 h-5 ml-0.5" />
+                      <Send className="w-6 h-6 ml-0.5" />
                     </button>
                   </form>
+                  <div className="text-center mt-3">
+                    <span className="text-[10px] text-cyan-800/60 font-mono tracking-widest uppercase">PhysiTutor AI może popełniać błędy. Weryfikuj wyniki z kartą wzorów.</span>
+                  </div>
                 </div>
               </div>
             </div>
