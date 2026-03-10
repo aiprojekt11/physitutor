@@ -31,7 +31,7 @@ export default function App() {
   const [messages, setMessages] = useState([
     {
       role: 'ai',
-      text: 'Inicjalizacja modułu Edu-Core... Cześć! Jestem Twoim prywatnym nauczycielem fizyki. Wklej treść zadania lub zrób zdjęcie z książki, a rozwiążę je dla Ciebie krok po kroku w czytelnych blokach.'
+      text: 'Inicjalizacja modułu Edu-Core... Cześć! Jestem Twoim prywatnym nauczycielem fizyki. Wklej treść zadania lub zrób zdjęcie z książki, a rozwiążę je dla Ciebie krok po kroku.'
     }
   ]);
   const [inputValue, setInputValue] = useState('');
@@ -255,7 +255,7 @@ export default function App() {
               </div>
               <div>
                 <h1 className="text-lg md:text-xl font-bold text-cyan-50 tracking-widest uppercase drop-shadow-[0_0_5px_rgba(34,211,238,0.3)]">
-                  PhysiTutor <span className="text-purple-400 text-[10px] align-top font-mono ml-1">v3.1</span>
+                  PhysiTutor <span className="text-purple-400 text-[10px] align-top font-mono ml-1">v1.0</span>
                 </h1>
                 <p className="text-[8px] md:text-[10px] text-cyan-500/50 font-mono tracking-widest uppercase">CKE Optimized • Core-Node Ready</p>
               </div>
