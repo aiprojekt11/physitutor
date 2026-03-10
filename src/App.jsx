@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Send, Calculator, BookOpen, FunctionSquare, ArrowRightLeft, Sparkles, Loader2, RefreshCw, Camera, X, Activity, MessageSquare } from 'lucide-react';
 
 // --- SYSTEM PROMPT (Zintegrowana Karta Wzorów CKE + Złota Struktura bez rysunków) ---
+// --- SYSTEM PROMPT (Zintegrowana Karta Wzorów CKE + Złota Struktura bez rysunków) ---
+// --- SYSTEM PROMPT (Zintegrowana Karta Wzorów CKE + Złota Struktura bez rysunków) ---
 const SYSTEM_PROMPT = `Rola: Jesteś ekspertem z fizyki i bardzo cierpliwym nauczycielem przygotowującym polskich uczniów do matury z fizyki na poziomie rozszerzonym. Twoja filozofia to absolutne skupienie na fundamentach i rozwiązywanie zadań krok po kroku w eleganckich, ustrukturyzowanych blokach.
 
 Zasady, których musisz bezwzględnie przestrzegać:
@@ -14,7 +16,9 @@ Zasady, których musisz bezwzględnie przestrzegać:
    - Moment siły: $M$ (bezwzględny zakaz używania greckiej litery tau), Praca: $W$
 3. TYLKO WZORY FUNDAMENTALNE: Zawsze zaczynaj od absolutnych fundamentów. Zanim zapiszesz równanie, krótko wyjaśnij, Z CZEGO TO WYNIKA.
 4. ZAWSZE WYJAŚNIAJ PRZYBLIŻENIA (KRYTYCZNE): Nigdy nie przeskakuj ukrytych założeń. (np. dla małych kątów wahadła $\\sin\\alpha \\approx \\alpha \\approx \\frac{x}{l}$). Napisz po prostu, z czego to wynika.
-5. KOMPAKTOWE OBLICZENIA LICZBOWE: Kiedy podstawiasz liczby do wzoru, rób to w JEDNEJ ciągłej linii, stosując łańcuch znaków równości (zmienna = liczby = kroki = wynik z jednostką). Nie rozbijaj tego na wiele pionowych bloków!
+5. OBLICZENIA - TYLKO JEDNA LINIJKA (KRYTYCZNE): Masz BEZWZGLĘDNY ZAKAZ rozpisywania pośrednich kroków matematycznych. Zabronione jest pokazywanie upraszczania ułamków, wymnażania czy wyciągania pierwiastka w osobnych blokach. Obliczenia to ma być JEDEN, pojedynczy blok LaTeX ($$ ... $$) ze znakami równości. Schemat, którego musisz użyć:
+   $$ Symbol = \text{Podstawienie wszystkich liczb} = \text{Gotowy wynik z jednostką} $$
+   Tworzenie wielu osobnych bloków z obliczeniami matematycznymi zostanie potraktowane jako błąd krytyczny!
 6. FORMATOWANIE MATEMATYKI: Używaj WYŁĄCZNIE standardowego formatu LaTeX. Zawsze otaczaj symbole w tekście pojedynczymi dolarami ($v$). Wzory główne i przekształcenia zamykaj w podwójnych dolarach ($$ ... $$), używając \\\\ do nowej linii.
 7. PRZESŁANE ZDJĘCIA ZADAŃ: Odczytaj treść i dane ze zdjęcia, a następnie rozwiąż. Nie wspominaj, że czytasz ze zdjęcia.
 8. Złota Struktura Odpowiedzi (DLA NOWYCH ZADAŃ) - Używaj nagłówków ###:
@@ -22,7 +26,7 @@ Zasady, których musisz bezwzględnie przestrzegać:
    - 📝 Dane i Szukane: Wypisane z oficjalnymi symbolami.
    - ⚙️ Wzory i Prawa: Jakich praw fizyki użyjemy.
    - 🧮 Przekształcenia (Krok po kroku): Powolne wyprowadzenie wzoru końcowego (na literach).
-   - 🔢 Obliczenia i Wynik: Zwięzłe podstawienie liczb w JEDNEJ LINII i odpowiedź końcowa.
+   - 🔢 Obliczenia i Wynik: TYLKO JEDNO RÓWNANIE. Podstawiasz liczby pod wyprowadzony wzór końcowy i od razu podajesz wynik. Żadnych pośrednich bloków z obliczeniami.
    - ⚠️ Typowy błąd (Opcjonalnie): Ostrzeżenie przed częstym błędem maturzystów.`;
 
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
@@ -269,26 +273,47 @@ export default function App() {
             <div className="flex-1 flex flex-col relative min-h-0">
               <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 scroll-smooth custom-scrollbar z-10">
                 {messages.map((msg, idx) => (
-                  <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-4xl rounded-xl p-5 shadow-sm relative ${
-                      msg.role === 'user' 
-                        ? 'bg-cyan-950/30 border border-cyan-500/20 text-cyan-50 rounded-tr-none' 
-                        : 'bg-slate-900/30 border border-purple-500/20 text-cyan-50 rounded-tl-none w-full'
-                    }`}>
-                      {msg.role === 'ai' && <div className="text-[9px] font-mono text-purple-400/40 mb-3 uppercase tracking-widest flex items-center gap-2"><Sparkles className="w-3 h-3" /> System Odpowiedzi</div>}
-                      {msg.imageUrl && (
-                        <img src={msg.imageUrl} alt="Skan" className="max-w-xs rounded border border-cyan-500/20 mb-3 shadow-[0_0_10px_rgba(34,211,238,0.1)] mix-blend-screen" />
+                  <div key={idx} className={`w-full ${msg.role === 'ai' ? 'py-6 md:py-8 bg-slate-900/40 border-y border-cyan-500/10 mb-6' : 'mb-6 px-4 md:px-8'}`}>
+                    <div className={`max-w-4xl mx-auto flex ${msg.role === 'user' ? 'justify-end' : 'gap-4 md:gap-6'}`}>
+                      
+                      {/* Ikonka AI (tylko dla wiadomości od AI) */}
+                      {msg.role === 'ai' && (
+                        <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-[#020617] border border-purple-500/40 text-purple-400 flex items-center justify-center shrink-0 shadow-[0_0_10px_rgba(168,85,247,0.2)]">
+                          <Sparkles className="w-5 h-5" />
+                        </div>
                       )}
-                      <div className="text-sm md:text-base leading-relaxed">{renderText(msg.text)}</div>
+
+                      {/* Treść wiadomości */}
+                      <div className={`${msg.role === 'user' ? 'max-w-2xl bg-cyan-900/40 border border-cyan-500/30 rounded-3xl rounded-tr-sm p-5 shadow-sm' : 'flex-1 overflow-hidden pt-1 md:pt-2'}`}>
+                        {msg.imageUrl && (
+                          <img src={msg.imageUrl} alt="Skan" className="max-w-sm w-full rounded-xl border border-cyan-500/30 mb-4 shadow-[0_0_20px_rgba(34,211,238,0.15)] mix-blend-screen" />
+                        )}
+                        
+                        {msg.role === 'user' ? (
+                          <div className="text-base md:text-lg text-cyan-50 leading-relaxed drop-shadow-sm">
+                            {msg.text}
+                          </div>
+                        ) : (
+                          <div className="text-sm md:text-base leading-relaxed">
+                            {renderText(msg.text)}
+                          </div>
+                        )}
+                      </div>
+                      
                     </div>
                   </div>
                 ))}
                 
                 {isLoading && (
-                  <div className="flex justify-start animate-in fade-in duration-500">
-                    <div className="max-w-md rounded-xl p-4 bg-slate-900/30 border border-cyan-500/20 flex items-center gap-3 backdrop-blur-md">
-                      <Loader2 className="w-4 h-4 text-cyan-500 animate-spin" />
-                      <span className="text-[10px] font-mono text-cyan-500/80 tracking-widest uppercase animate-pulse">Przetwarzanie danych i formowanie bloków...</span>
+                  <div className="w-full py-6 md:py-8 bg-slate-900/40 border-y border-cyan-500/10 animate-in fade-in duration-500 mb-6">
+                    <div className="max-w-4xl mx-auto px-4 md:px-8 flex gap-4 md:gap-6">
+                      <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-[#020617] border border-purple-500/40 text-purple-400 flex items-center justify-center shrink-0 shadow-[0_0_10px_rgba(168,85,247,0.2)]">
+                        <Sparkles className="w-5 h-5 animate-pulse" />
+                      </div>
+                      <div className="flex-1 flex items-center gap-3 pt-1 md:pt-2">
+                        <Loader2 className="w-5 h-5 text-cyan-500 animate-spin" />
+                        <span className="text-sm font-mono text-cyan-500/80 tracking-widest uppercase animate-pulse">Analiza równań fizycznych...</span>
+                      </div>
                     </div>
                   </div>
                 )}
