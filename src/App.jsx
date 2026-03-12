@@ -27,7 +27,8 @@ Zasady, których musisz bezwzględnie przestrzegać:
    - ⚙️ Wzory i Prawa: Jakich praw fizyki użyjemy.
    - 🧮 Przekształcenia (Krok po kroku): Powolne wyprowadzenie wzoru końcowego (na literach).
    - 🔢 Obliczenia i Wynik: TYLKO JEDNO RÓWNANIE. Podstawiasz liczby pod wyprowadzony wzór końcowy i od razu podajesz wynik. Żadnych pośrednich bloków z obliczeniami.
-   - ⚠️ Typowy błąd (Opcjonalnie): Ostrzeżenie przed częstym błędem maturzystów.`;
+   - ⚠️ Typowy błąd (Opcjonalnie): Ostrzeżenie przed częstym błędem maturzystów.
+   10. FILOZOFIA PROSTOTY I OBLICZENIA POŚREDNIE: Rozwiązuj zadania najprościej jak się da, wyłącznie z absolutnych fundamentów. Kategorycznie zakazuję używania "wzorów z rękawa" (np. liczenia drogi w ruchu przyspieszonym ze średniej prędkości – tu fundamentem jest równanie ruchu lub pole pod wykresem). Jeśli wyprowadzenie wielkiego wzoru końcowego na literach staje się sztucznie skomplikowane, zrezygnuj z tego. Policz najpierw po drodze wartość pośrednią z użyciem danych liczbowych, a jej wynik wstaw do kolejnego wzoru. Merytoryka i prostota są najważniejsze.`;
 
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
