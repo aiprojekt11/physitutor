@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Calculator, BookOpen, FunctionSquare, ArrowRightLeft, Sparkles, Loader2, RefreshCw, Camera, X, Activity, MessageSquare } from 'lucide-react';
 
-const SYSTEM_PROMPT = `Rola: Jesteś ekspertem z fizyki i bardzo cierpliwym nauczycielem przygotowującym polskich uczniów do matury z fizyki na poziomie rozszerzonym. Twoja filozofia to absolutne skupienie na fundamentach i rozwiązywanie zadań krok po kroku w eleganckich, ustrukturyzowanych blokach.
+// --- PEŁNY SYSTEM PROMPT (Zintegrowana Karta Wzorów CKE + Złota Struktura + Filozofia Fundamentów) ---
+const SYSTEM_PROMPT = `Rola: Jesteś ekspertem z fizyki i bardzo cierpliwym nauczycielem przygotowującym polskich uczniów do matury z fizyki na poziomie rozszerzonym. Twoja filozofia to absolutne skupienie na fundamentach, zrozumienie zjawisk zamiast pamięciówki i rozwiązywanie zadań najprościej jak to możliwe, w eleganckich, ustrukturyzowanych blokach.
 
 Zasady, których musisz bezwzględnie przestrzegać:
 1. ROZPOZNAWANIE INTENCJI UCZNIA:
@@ -11,22 +12,27 @@ Zasady, których musisz bezwzględnie przestrzegać:
    - Prędkość: $v$, $v_0$, Droga: $s$, Przyspieszenie dośrodkowe: $a_{do}$
    - Siła tarcia: $T$ lub $T_k$, $T_s$, Siła sprężystości: $F_s = -kx$
    - Moment siły: $M$ (bezwzględny zakaz używania greckiej litery tau), Praca: $W$
-3. TYLKO WZORY FUNDAMENTALNE: Zawsze zaczynaj od absolutnych fundamentów. Zanim zapiszesz równanie, krótko wyjaśnij, Z CZEGO TO WYNIKA.
-4. ZAWSZE WYJAŚNIAJ PRZYBLIŻENIA (KRYTYCZNE): Nigdy nie przeskakuj ukrytych założeń. (np. dla małych kątów wahadła $\\sin\\alpha \\approx \\alpha \\approx \\frac{x}{l}$). Napisz po prostu, z czego to wynika.
-5. OBLICZENIA - TYLKO JEDNA LINIJKA (KRYTYCZNE): Masz BEZWZGLĘDNY ZAKAZ rozpisywania pośrednich kroków matematycznych. Zabronione jest pokazywanie upraszczania ułamków, wymnażania czy wyciągania pierwiastka w osobnych blokach. Obliczenia to ma być JEDEN, pojedynczy blok LaTeX ($$ ... $$) ze znakami równości. Schemat, którego musisz użyć:
-   $$ Symbol = \\text{Podstawienie wszystkich liczb} = \\text{Gotowy wynik z jednostką} $$
-   Tworzenie wielu osobnych bloków z obliczeniami matematycznymi zostanie potraktowane jako błąd krytyczny!
-6. FORMATOWANIE MATEMATYKI: Używaj WYŁĄCZNIE standardowego formatu LaTeX. Zawsze otaczaj symbole w tekście pojedynczymi dolarami ($v$). Wzory główne i przekształcenia zamykaj w podwójnych dolarach ($$ ... $$), używając \\\\ do nowej linii.
-7. PRZESŁANE ZDJĘCIA ZADAŃ: Odczytaj treść i dane ze zdjęcia, a następnie rozwiąż. Nie wspominaj, że czytasz ze zdjęcia.
-8. Złota Struktura Odpowiedzi (DLA NOWYCH ZADAŃ) - Używaj nagłówków ###:
+3. TYLKO WZORY FUNDAMENTALNE I ZAKAZ "WZORÓW Z RĘKAWA" (KRYTYCZNE): Zawsze zaczynaj od absolutnych fundamentów (np. zasady dynamiki Newtona, zasady zachowania energii, podstawowe równanie $s = v_0 t + \\frac{at^2}{2}$). Masz KATEGORYCZNY ZAKAZ używania wyuczonych "wzorów na skróty" wyciągniętych znikąd. (np. bezwzględnie zabronione jest liczenie drogi w ruchu przyspieszonym ze średniej prędkości! W zadaniach z wykresem fundamentem jest liczenie pola pod wykresem). Uczeń ma nie pamiętać losowych wzorów, tylko je rozumieć. Zanim zapiszesz równanie, krótko wyjaśnij, Z CZEGO TO WYNIKA.
+4. FILOZOFIA PROSTOTY I OBLICZENIA POŚREDNIE: Rozwiązuj zadania najprościej jak się da. Jeśli wyprowadzenie jednego wielkiego wzoru końcowego na literach staje się skomplikowane i niepotrzebnie trudne do policzenia, zrezygnuj z tego. Policz najpierw po drodze wartość pośrednią (np. przyspieszenie, czas), a jej wynik liczbowy wstaw do kolejnego wzoru. Merytoryka i prostota są najważniejsze.
+5. ZAWSZE WYJAŚNIAJ PRZYBLIŻENIA (KRYTYCZNE): Nigdy nie przeskakuj ukrytych założeń. (np. dla małych kątów wahadła $\\sin\\alpha \\approx \\alpha \\approx \\frac{x}{l}$). Napisz po prostu, z czego to wynika.
+6. OBLICZENIA LICZBOWE - MINIMUM MIEJSCA I TYLKO JEDNA LINIJKA (KRYTYCZNE): Obliczenia liczbowe mają zajmować JAK NAJMNIEJ MIEJSCA na ekranie! Masz BEZWZGLĘDNY ZAKAZ rozpisywania pośrednich kroków matematycznych (zabronione jest pokazywanie upraszczania ułamków, wymnażania pod pierwiastkiem czy skracania w osobnych linijkach). Każde podstawienie liczb (zarówno w krokach pośrednich, jak i na końcu) musi być ujęte w JEDEN, maksymalnie skompresowany blok LaTeX ($$...$$). Wymagany, żelazny schemat to:
+   $$Wzór = \\text{Podstawienie wszystkich liczb naraz} = \\text{Gotowy wynik z jednostką}$$
+   Złamanie tej zasady i tworzenie wielopiętrowych bloków z arytmetyką to błąd krytyczny!
+7. FORMATOWANIE MATEMATYKI: Używaj WYŁĄCZNIE standardowego formatu LaTeX. Zawsze otaczaj symbole w tekście pojedynczymi dolarami ($v$). Wzory główne i przekształcenia zamykaj w podwójnych dolarach ($$...$$), używając \\\\ do nowej linii.
+8. PRZESŁANE ZDJĘCIA ZADAŃ: Odczytaj treść i dane ze zdjęcia, a następnie rozwiąż. Nie wspominaj, że czytasz ze zdjęcia.
+9. MATEMATYKA LICEALNA (FUNKCJA KWADRATOWA): Rozwiązania matematyczne muszą być dopasowane do ucznia liceum. W funkcji kwadratowej masz bezwzględny zakaz używania akademickiego zapisu z $\\pm$ (np. $x = \\frac{-b \\pm \\sqrt{\\Delta}}{2a}$). Zawsze jawnie wylicz najpierw wartość wyróżnika ($\\Delta = b^2 - 4ac$), a następnie wypisz DWA osobne pierwiastki: $x_1 = \\frac{-b - \\sqrt{\\Delta}}{2a}$ oraz $x_2 = \\frac{-b + \\sqrt{\\Delta}}{2a}$. Odrzuć fizycznie niemożliwe wyniki (np. ujemny czas) z polskim komentarzem.
+10. Złota Struktura Odpowiedzi (DLA NOWYCH ZADAŃ) - Używaj nagłówków ###:
    - 💡 Zrozumienie zjawiska: Krótki, obrazowy opis sytuacji.
    - 📝 Dane i Szukane: Wypisane z oficjalnymi symbolami.
-   - ⚙️ Wzory i Prawa: Jakich praw fizyki użyjemy.
-   - 🧮 Przekształcenia (Krok po kroku): Powolne wyprowadzenie wzoru końcowego (na literach).
-   - 🔢 Obliczenia i Wynik: TYLKO JEDNO RÓWNANIE. Podstawiasz liczby pod wyprowadzony wzór końcowy i od razu podajesz wynik. Żadnych pośrednich bloków z obliczeniami.
-   - ⚠️ Typowy błąd (Opcjonalnie): Ostrzeżenie przed częstym błędem maturzystów.
-10. FILOZOFIA PROSTOTY I OBLICZENIA POŚREDNIE: Rozwiązuj zadania najprościej jak się da, wyłącznie z absolutnych fundamentów. Kategorycznie zakazuję używania "wzorów z rękawa" (np. liczenia drogi w ruchu przyspieszonym ze średniej prędkości – tu fundamentem jest równanie ruchu lub pole pod wykresem). Jeśli wyprowadzenie wielkiego wzoru końcowego na literach staje się sztucznie skomplikowane, zrezygnuj z tego. Policz najpierw po drodze wartość pośrednią z użyciem danych liczbowych, a jej wynik wstaw do kolejnego wzoru. Merytoryka i prostota są najważniejsze.`;
+   - ⚙️ Fundamenty Fizyczne: Jakich absolutnie podstawowych praw fizyki użyjemy i dlaczego.
+   - 🧮 Rozwiązanie (Krok po kroku): Powolne wyprowadzenie z fundamentów. Możesz tu policzyć wartości pośrednie, jeśli upraszcza to zadanie (pamiętając o rygorystycznym schemacie jednej linijki i minimum miejsca z punktu 6).
+   - 🔢 Wynik Końcowy: TYLKO JEDNO RÓWNANIE. Podstawiasz liczby pod wzór (lub korzystasz z wartości pośrednich) i od razu podajesz ostateczny wynik. Żadnych pośrednich bloków arytmetycznych.
+   - ⚠️ Typowy błąd (Opcjonalnie): Ostrzeżenie przed częstym błędem maturzystów.`;
 
+// 🔴 BARDZO WAŻNE DLA VERCELA 🔴
+// Środowisko testowe wymusza tutaj pusty klucz. 
+// Gdy kopiujesz ten kod do swojego VS Code, podmień poniższą linijkę na:
+// const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
 export default function App() {
@@ -115,11 +121,9 @@ export default function App() {
     setInputValue('');
     setSelectedImage(null);
 
-    // KULOOODPORNE BUDOWANIE HISTORII (Naprawia błąd 400 Bad Request)
     const validHistory = [];
     let lastRole = null;
     
-    // Filtrujemy, żeby zachować układ naprzemienny: user -> model -> user -> model
     messages.slice(1).forEach(msg => {
       const currentRole = msg.role === 'ai' ? 'model' : 'user';
       if (currentRole !== lastRole && msg.text && !msg.text.includes('⚠️')) {
@@ -128,15 +132,12 @@ export default function App() {
       }
     });
 
-    // Zabezpieczenie na wypadek, gdyby ostatnia zarchiwizowana wiadomość była od usera (nie pozwalamy na 2 z rzędu)
     if (validHistory.length > 0 && validHistory[validHistory.length - 1].role === 'user') {
       validHistory.pop();
     }
 
     const currentParts = [{ text: userText.trim() ? userText : "Przeczytaj treść zadania ze zdjęcia i rozwiąż je." }];
     if (imageObj) currentParts.push({ inlineData: { mimeType: imageObj.mimeType, data: imageObj.base64 } });
-    
-    // Dodajemy bieżące zapytanie
     validHistory.push({ role: 'user', parts: currentParts });
 
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
@@ -180,10 +181,11 @@ export default function App() {
     if (!katexLoaded || !window.katex) return <div className="text-cyan-600 animate-pulse font-mono text-sm tracking-widest">Inicjalizacja modułu matematycznego...</div>;
 
     const cb = '```';
-    let clean = text.replace(/<frac>([^|}]*)[|}]?([^<]*)(<\\/frac>|\\})/g, '\\frac{$1}{$2}')
-                    .replace(/<sqrt>/g, '\\sqrt{').replace(/<\\/sqrt>/g, '}');
+    // Naprawiono podwójne ukośniki psujące wyrażenia regularne (Oxc Parser Error)
+    let clean = text.replace(/<frac>([^|}]*)[|}]?([^<]*)(<\/frac>|\})/g, '\\frac{$1}{$2}')
+                    .replace(/<sqrt>/g, '\\sqrt{').replace(/<\/sqrt>/g, '}');
                  
-    const parts = clean.split(/(\\$\\$[\\s\\S]*?\\$\\$|\\$[\\s\\S]*?\\$)/g);
+    const parts = clean.split(/(\$\$[\s\S]*?\$\$|\$[\s\S]*?\$)/g);
 
     return parts.map((part, i) => {
       if (part.startsWith('$$') && part.endsWith('$$')) {
@@ -208,10 +210,10 @@ export default function App() {
       let textHtml = part.replace(new RegExp(cb + '[a-zA-Z]*\\n?', 'g'), '').replace(new RegExp(cb, 'g'), '');
       textHtml = textHtml
         .replace(/</g, '&lt;').replace(/>/g, '&gt;') 
-        .replace(/\\*\\*([^*]+)\\*\\*/g, '<span class="text-cyan-400 font-bold drop-shadow-[0_0_5px_rgba(34,211,238,0.4)]">$1</span>')
+        .replace(/\*\*([^*]+)\*\*/g, '<span class="text-cyan-400 font-bold drop-shadow-[0_0_5px_rgba(34,211,238,0.4)]">$1</span>')
         .replace(/### (.*)/g, '<span class="block text-base font-bold text-purple-400 mt-4 mb-2 border-b border-purple-500/20 pb-1 uppercase tracking-wider flex items-center gap-2"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>$1</span>')
         .replace(/## (.*)/g, '<span class="block text-lg font-bold text-cyan-400 mt-6 mb-2 uppercase tracking-widest">$1</span>')
-        .replace(/\\n/g, '<br />'); 
+        .replace(/\n/g, '<br />'); 
 
       return <span key={i} dangerouslySetInnerHTML={{ __html: textHtml }} className="text-cyan-50/80 leading-relaxed font-sans text-sm md:text-base" />;
     });
@@ -276,9 +278,9 @@ export default function App() {
               </div>
               <div>
                 <h1 className="text-lg md:text-xl font-bold text-cyan-50 tracking-widest uppercase drop-shadow-[0_0_5px_rgba(34,211,238,0.3)]">
-                  PhysiTutor <span className="text-purple-400 text-[10px] align-top font-mono ml-1">v1.0</span>
+                  PhysiTutor <span className="text-purple-400 text-[10px] align-top font-mono ml-1">v1.3-FIX</span>
                 </h1>
-                <p className="text-[8px] md:text-[10px] text-cyan-500/50 font-mono tracking-widest uppercase">CKE Optimized • Core-Node Ready</p>
+                <p className="text-[8px] md:text-[10px] text-cyan-500/50 font-mono tracking-widest uppercase">CKE Optimized • Auto-Compress</p>
               </div>
             </div>
             <div className="flex gap-2 font-mono text-[10px] text-cyan-600/70">
@@ -309,7 +311,7 @@ export default function App() {
                             {msg.text}
                           </div>
                         ) : (
-                          <div className="text-sm md:text-base leading-relaxed text-red-400">
+                          <div className="text-sm md:text-base leading-relaxed text-cyan-50">
                             {renderText(msg.text)}
                           </div>
                         )}
