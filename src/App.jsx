@@ -1,9 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Calculator, BookOpen, FunctionSquare, ArrowRightLeft, Sparkles, Loader2, RefreshCw, Camera, X, Activity, MessageSquare } from 'lucide-react';
 
-// --- SYSTEM PROMPT (Zintegrowana Karta Wzorów CKE + Złota Struktura bez rysunków) ---
-// --- SYSTEM PROMPT (Zintegrowana Karta Wzorów CKE + Złota Struktura bez rysunków) ---
-// --- SYSTEM PROMPT (Zintegrowana Karta Wzorów CKE + Złota Struktura bez rysunków) ---
 const SYSTEM_PROMPT = `Rola: Jesteś ekspertem z fizyki i bardzo cierpliwym nauczycielem przygotowującym polskich uczniów do matury z fizyki na poziomie rozszerzonym. Twoja filozofia to absolutne skupienie na fundamentach i rozwiązywanie zadań krok po kroku w eleganckich, ustrukturyzowanych blokach.
 
 Zasady, których musisz bezwzględnie przestrzegać:
@@ -17,7 +14,7 @@ Zasady, których musisz bezwzględnie przestrzegać:
 3. TYLKO WZORY FUNDAMENTALNE: Zawsze zaczynaj od absolutnych fundamentów. Zanim zapiszesz równanie, krótko wyjaśnij, Z CZEGO TO WYNIKA.
 4. ZAWSZE WYJAŚNIAJ PRZYBLIŻENIA (KRYTYCZNE): Nigdy nie przeskakuj ukrytych założeń. (np. dla małych kątów wahadła $\\sin\\alpha \\approx \\alpha \\approx \\frac{x}{l}$). Napisz po prostu, z czego to wynika.
 5. OBLICZENIA - TYLKO JEDNA LINIJKA (KRYTYCZNE): Masz BEZWZGLĘDNY ZAKAZ rozpisywania pośrednich kroków matematycznych. Zabronione jest pokazywanie upraszczania ułamków, wymnażania czy wyciągania pierwiastka w osobnych blokach. Obliczenia to ma być JEDEN, pojedynczy blok LaTeX ($$ ... $$) ze znakami równości. Schemat, którego musisz użyć:
-   $$ Symbol = \text{Podstawienie wszystkich liczb} = \text{Gotowy wynik z jednostką} $$
+   $$ Symbol = \\text{Podstawienie wszystkich liczb} = \\text{Gotowy wynik z jednostką} $$
    Tworzenie wielu osobnych bloków z obliczeniami matematycznymi zostanie potraktowane jako błąd krytyczny!
 6. FORMATOWANIE MATEMATYKI: Używaj WYŁĄCZNIE standardowego formatu LaTeX. Zawsze otaczaj symbole w tekście pojedynczymi dolarami ($v$). Wzory główne i przekształcenia zamykaj w podwójnych dolarach ($$ ... $$), używając \\\\ do nowej linii.
 7. PRZESŁANE ZDJĘCIA ZADAŃ: Odczytaj treść i dane ze zdjęcia, a następnie rozwiąż. Nie wspominaj, że czytasz ze zdjęcia.
@@ -28,7 +25,7 @@ Zasady, których musisz bezwzględnie przestrzegać:
    - 🧮 Przekształcenia (Krok po kroku): Powolne wyprowadzenie wzoru końcowego (na literach).
    - 🔢 Obliczenia i Wynik: TYLKO JEDNO RÓWNANIE. Podstawiasz liczby pod wyprowadzony wzór końcowy i od razu podajesz wynik. Żadnych pośrednich bloków z obliczeniami.
    - ⚠️ Typowy błąd (Opcjonalnie): Ostrzeżenie przed częstym błędem maturzystów.
-   10. FILOZOFIA PROSTOTY I OBLICZENIA POŚREDNIE: Rozwiązuj zadania najprościej jak się da, wyłącznie z absolutnych fundamentów. Kategorycznie zakazuję używania "wzorów z rękawa" (np. liczenia drogi w ruchu przyspieszonym ze średniej prędkości – tu fundamentem jest równanie ruchu lub pole pod wykresem). Jeśli wyprowadzenie wielkiego wzoru końcowego na literach staje się sztucznie skomplikowane, zrezygnuj z tego. Policz najpierw po drodze wartość pośrednią z użyciem danych liczbowych, a jej wynik wstaw do kolejnego wzoru. Merytoryka i prostota są najważniejsze.`;
+10. FILOZOFIA PROSTOTY I OBLICZENIA POŚREDNIE: Rozwiązuj zadania najprościej jak się da, wyłącznie z absolutnych fundamentów. Kategorycznie zakazuję używania "wzorów z rękawa" (np. liczenia drogi w ruchu przyspieszonym ze średniej prędkości – tu fundamentem jest równanie ruchu lub pole pod wykresem). Jeśli wyprowadzenie wielkiego wzoru końcowego na literach staje się sztucznie skomplikowane, zrezygnuj z tego. Policz najpierw po drodze wartość pośrednią z użyciem danych liczbowych, a jej wynik wstaw do kolejnego wzoru. Merytoryka i prostota są najważniejsze.`;
 
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
@@ -83,11 +80,30 @@ export default function App() {
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    const MAX_WIDTH = 1024;
+    const MAX_HEIGHT = 1024;
     const reader = new FileReader();
-    reader.onloadend = () => {
-      const result = reader.result;
-      const base64 = result.split(',')[1];
-      setSelectedImage({ base64, mimeType: file.type, dataUrl: result });
+    
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width; let height = img.height;
+        if (width > height) { if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; } } 
+        else { if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; } }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width; canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+        setSelectedImage({ base64: compressedDataUrl.split(',')[1], mimeType: 'image/jpeg', dataUrl: compressedDataUrl });
+      };
+      img.src = event.target.result;
     };
     reader.readAsDataURL(file);
     e.target.value = '';
@@ -99,51 +115,59 @@ export default function App() {
     setInputValue('');
     setSelectedImage(null);
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+    // KULOOODPORNE BUDOWANIE HISTORII (Naprawia błąd 400 Bad Request)
+    const validHistory = [];
+    let lastRole = null;
     
-    const historyContents = messages.filter((_, idx) => idx !== 0).map(msg => {
-      const parts = [];
-      if (msg.text) parts.push({ text: msg.text });
-      if (msg.imageUrl) {
-        const [prefix, base64] = msg.imageUrl.split(',');
-        const mimeType = prefix.match(/:(.*?);/)[1];
-        parts.push({ inlineData: { mimeType, data: base64 } });
+    // Filtrujemy, żeby zachować układ naprzemienny: user -> model -> user -> model
+    messages.slice(1).forEach(msg => {
+      const currentRole = msg.role === 'ai' ? 'model' : 'user';
+      if (currentRole !== lastRole && msg.text && !msg.text.includes('⚠️')) {
+        validHistory.push({ role: currentRole, parts: [{ text: msg.text }] });
+        lastRole = currentRole;
       }
-      return { role: msg.role === 'ai' ? 'model' : 'user', parts };
     });
-      
-    const currentParts = [{ text: userText.trim() ? userText : "Przeczytaj treść zadania ze zdjęcia i rozwiąż je zgodnie ze swoimi instrukcjami." }];
+
+    // Zabezpieczenie na wypadek, gdyby ostatnia zarchiwizowana wiadomość była od usera (nie pozwalamy na 2 z rzędu)
+    if (validHistory.length > 0 && validHistory[validHistory.length - 1].role === 'user') {
+      validHistory.pop();
+    }
+
+    const currentParts = [{ text: userText.trim() ? userText : "Przeczytaj treść zadania ze zdjęcia i rozwiąż je." }];
     if (imageObj) currentParts.push({ inlineData: { mimeType: imageObj.mimeType, data: imageObj.base64 } });
-    historyContents.push({ role: 'user', parts: currentParts });
+    
+    // Dodajemy bieżące zapytanie
+    validHistory.push({ role: 'user', parts: currentParts });
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
     try {
-      const fetchWithRetry = async (retries = 5, delay = 1000) => {
-        for (let i = 0; i < retries; i++) {
-          try {
-            const response = await fetch(url, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ contents: historyContents, systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] } })
-            });
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            return await response.json();
-          } catch (e) {
-            if (i === retries - 1) throw e;
-            await new Promise(res => setTimeout(res, delay * Math.pow(2, i)));
-          }
-        }
-      };
-
-      const result = await fetchWithRetry();
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          contents: validHistory, 
+          systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] } 
+        })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || `Błąd serwera: ${response.status}`);
+      }
+      
+      const result = await response.json();
       let aiText = result.candidates?.[0]?.content?.parts?.[0]?.text;
       
       if (aiText) {
         setMessages(prev => [...prev, { role: 'ai', text: aiText }]);
       }
     } catch (error) {
-      console.error("API Error:", error);
-      setMessages(prev => [...prev, { role: 'ai', text: '⚠️ Problem z połączeniem. Odśwież stronę (F5) i spróbuj ponownie.' }]);
-    } finally { setIsLoading(false); }
+      console.error("Szczegóły błędu:", error);
+      setMessages(prev => [...prev, { role: 'ai', text: `⚠️ Błąd techniczny: ${error.message}` }]);
+    } finally { 
+      setIsLoading(false); 
+    }
   };
 
   const handleSendMessage = (e) => {
@@ -156,13 +180,12 @@ export default function App() {
     if (!katexLoaded || !window.katex) return <div className="text-cyan-600 animate-pulse font-mono text-sm tracking-widest">Inicjalizacja modułu matematycznego...</div>;
 
     const cb = '```';
-    let clean = text.replace(/<frac>([^|}]*)[|}]?([^<]*)(<\/frac>|\})/g, '\\frac{$1}{$2}')
-                    .replace(/<sqrt>/g, '\\sqrt{').replace(/<\/sqrt>/g, '}');
+    let clean = text.replace(/<frac>([^|}]*)[|}]?([^<]*)(<\\/frac>|\\})/g, '\\frac{$1}{$2}')
+                    .replace(/<sqrt>/g, '\\sqrt{').replace(/<\\/sqrt>/g, '}');
                  
-    const parts = clean.split(/(\$\$[\s\S]*?\$\$|\$[\s\S]*?\$)/g);
+    const parts = clean.split(/(\\$\\$[\\s\\S]*?\\$\\$|\\$[\\s\\S]*?\\$)/g);
 
     return parts.map((part, i) => {
-      // 1. BLOKI MATEMATYKI ($$)
       if (part.startsWith('$$') && part.endsWith('$$')) {
         let math = part.slice(2, -2).trim();
         if (math.includes('\\\\') && !math.includes('\\begin{')) {
@@ -174,7 +197,6 @@ export default function App() {
         } catch (e) { return <div key={i} className="text-red-500 font-mono text-xs">{part}</div>; }
       }
 
-      // 2. WZORY INLINE ($)
       if (part.startsWith('$') && part.endsWith('$')) {
         const math = part.slice(1, -1);
         try {
@@ -183,14 +205,13 @@ export default function App() {
         } catch (e) { return <span key={i} className="text-red-500 text-xs">{part}</span>; }
       }
 
-      // 3. ZWYKŁY TEKST I ZNACZNIKI SCI-FI
       let textHtml = part.replace(new RegExp(cb + '[a-zA-Z]*\\n?', 'g'), '').replace(new RegExp(cb, 'g'), '');
       textHtml = textHtml
         .replace(/</g, '&lt;').replace(/>/g, '&gt;') 
-        .replace(/\*\*([^*]+)\*\*/g, '<span class="text-cyan-400 font-bold drop-shadow-[0_0_5px_rgba(34,211,238,0.4)]">$1</span>')
+        .replace(/\\*\\*([^*]+)\\*\\*/g, '<span class="text-cyan-400 font-bold drop-shadow-[0_0_5px_rgba(34,211,238,0.4)]">$1</span>')
         .replace(/### (.*)/g, '<span class="block text-base font-bold text-purple-400 mt-4 mb-2 border-b border-purple-500/20 pb-1 uppercase tracking-wider flex items-center gap-2"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>$1</span>')
         .replace(/## (.*)/g, '<span class="block text-lg font-bold text-cyan-400 mt-6 mb-2 uppercase tracking-widest">$1</span>')
-        .replace(/\n/g, '<br />'); 
+        .replace(/\\n/g, '<br />'); 
 
       return <span key={i} dangerouslySetInnerHTML={{ __html: textHtml }} className="text-cyan-50/80 leading-relaxed font-sans text-sm md:text-base" />;
     });
@@ -222,14 +243,11 @@ export default function App() {
 
       <div className="flex h-screen w-full bg-[#020617] text-cyan-50 font-sans overflow-hidden selection:bg-cyan-900 selection:text-cyan-50">
         
-        {/* LEWY PASEK NAWIGACJI (Czysty, ujednolicony styl ikon Sci-Fi) */}
         <div className="w-16 md:w-20 bg-slate-900/80 border-r border-cyan-500/20 flex flex-col items-center py-6 z-20 shrink-0 backdrop-blur-xl hidden md:flex">
-          {/* Logo / System Icon */}
           <div className="flex h-10 w-10 bg-[#020617] border border-cyan-400 items-center justify-center rounded-xl mb-8 shadow-[0_0_10px_rgba(34,211,238,0.3)]">
             <Activity className="w-5 h-5 text-cyan-400" />
           </div>
           
-          {/* Chat Icon */}
           <button 
             onClick={() => setActiveTab('chat')}
             className={`p-2.5 rounded-xl mb-4 transition-all group shadow-[0_0_10px_rgba(34,211,238,0.1)] ${activeTab === 'chat' ? 'bg-cyan-900/60 text-cyan-300 border border-cyan-400/50' : 'bg-[#020617]/50 text-cyan-700 border border-transparent hover:border-cyan-800 hover:text-cyan-500'}`}
@@ -238,7 +256,6 @@ export default function App() {
             <MessageSquare className="w-5 h-5 group-hover:scale-105 transition-transform" />
           </button>
 
-          {/* Calculator Icon */}
           <button 
             onClick={() => setActiveTab('calculator')}
             className={`p-2.5 rounded-xl transition-all group shadow-[0_0_10px_rgba(34,211,238,0.1)] ${activeTab === 'calculator' ? 'bg-cyan-900/60 text-cyan-300 border border-cyan-400/50' : 'bg-[#020617]/50 text-cyan-700 border border-transparent hover:border-cyan-800 hover:text-cyan-500'}`}
@@ -248,7 +265,6 @@ export default function App() {
           </button>
         </div>
 
-        {/* GŁÓWNY PANEL TERMINALA */}
         <div className="flex-1 flex flex-col h-full overflow-hidden relative bg-[#020617]">
           
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#06b6d408_1px,transparent_1px),linear-gradient(to_bottom,#06b6d408_1px,transparent_1px)] bg-[size:2rem_2rem] opacity-40 pointer-events-none z-0"></div>
@@ -277,14 +293,12 @@ export default function App() {
                   <div key={idx} className={`w-full ${msg.role === 'ai' ? 'py-6 md:py-8 bg-slate-900/40 border-y border-cyan-500/10 mb-6' : 'mb-6 px-4 md:px-8'}`}>
                     <div className={`max-w-4xl mx-auto flex ${msg.role === 'user' ? 'justify-end' : 'gap-4 md:gap-6'}`}>
                       
-                      {/* Ikonka AI (tylko dla wiadomości od AI) */}
                       {msg.role === 'ai' && (
                         <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-[#020617] border border-purple-500/40 text-purple-400 flex items-center justify-center shrink-0 shadow-[0_0_10px_rgba(168,85,247,0.2)]">
                           <Sparkles className="w-5 h-5" />
                         </div>
                       )}
 
-                      {/* Treść wiadomości */}
                       <div className={`${msg.role === 'user' ? 'max-w-2xl bg-cyan-900/40 border border-cyan-500/30 rounded-3xl rounded-tr-sm p-5 shadow-sm' : 'flex-1 overflow-hidden pt-1 md:pt-2'}`}>
                         {msg.imageUrl && (
                           <img src={msg.imageUrl} alt="Skan" className="max-w-sm w-full rounded-xl border border-cyan-500/30 mb-4 shadow-[0_0_20px_rgba(34,211,238,0.15)] mix-blend-screen" />
@@ -295,7 +309,7 @@ export default function App() {
                             {msg.text}
                           </div>
                         ) : (
-                          <div className="text-sm md:text-base leading-relaxed">
+                          <div className="text-sm md:text-base leading-relaxed text-red-400">
                             {renderText(msg.text)}
                           </div>
                         )}
