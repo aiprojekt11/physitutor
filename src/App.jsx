@@ -278,7 +278,7 @@ export default function App() {
               </div>
               <div>
                 <h1 className="text-lg md:text-xl font-bold text-cyan-50 tracking-widest uppercase drop-shadow-[0_0_5px_rgba(34,211,238,0.3)]">
-                  PhysiTutor <span className="text-purple-400 text-[10px] align-top font-mono ml-1">v1.3-FIX</span>
+                  PhysiTutor <span className="text-purple-400 text-[10px] align-top font-mono ml-1">BETA</span>
                 </h1>
                 <p className="text-[8px] md:text-[10px] text-cyan-500/50 font-mono tracking-widest uppercase">CKE Optimized • Auto-Compress</p>
               </div>
