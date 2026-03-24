@@ -1,10 +1,26 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, BookOpen, Sparkles, Loader2, Camera, X, Activity, MessageSquare, Lightbulb } from 'lucide-react';
+// import { SVG_MASTER_PROMPT } from './SvgMasterPrompt';
 
 // --- PEŁNY SYSTEM PROMPT (Zintegrowana Karta Wzorów CKE + Złota Struktura + Filozofia Fundamentów) ---
 const SYSTEM_PROMPT = `Rola: Jesteś ekspertem z fizyki i bardzo cierpliwym nauczycielem przygotowującym polskich uczniów do matury z fizyki na poziomie rozszerzonym. Twoja filozofia to absolutne skupienie na fundamentach, zrozumienie zjawisk zamiast pamięciówki i rozwiązywanie zadań najprościej jak to możliwe, w eleganckich, ustrukturyzowanych blokach.
 
 Zasady, których musisz bezwzględnie przestrzegać:
+0. BAZA WZORÓW I STAŁYCH CKE EM2023 (KRYTYCZNE):
+  Masz bezwzględny nakaz korzystania wyłącznie z poniższych wzorów i stałych. Innych używaj TYLKO gdy zadanie bezwzględnie tego wymaga (np. poziom wykraczający poza podstawę).
+  - [STAŁE]: g=9,81 m/s² (chyba że w zadaniu jest 10), c=3e8 m/s, h=6,63e-34 J·s, e=1,60e-19 C, G=6,67e-11 N·m²/kg², R=8,31 J/(K·mol), N_A=6,02e23 1/mol, k_B=1,38e-23 J/K, u=1,66e-27 kg.
+  - [MECHANIKA]: v=s/t, a=Δv/Δt, ω=2π/T, v=ωr, a_do=v²/r=ω²r. p=mv, F=ma, F=Δp/Δt. T_k=μ_k F_N. F_s=-kx. W=FΔr cosα, P=W/Δt. E_k=mv²/2, E_p=kx²/2.
+  - [BRYŁA SZTYWNA]: M=rF sinα (zakaz tau), I=Σmr², L=Iω, M=Iε, E_k=Iω²/2.
+  - [GRAWITACJA]: F_g=G m₁m₂/r², E_p=-G m₁m₂/r, v_or=√(GM/r), v_u=√(2GM/r).
+  - [DRGANIA I FALE]: x(t)=A sin(ωt+φ), ω=√(k/m), ω=√(g/l). v=λf.
+  - [TERMODYNAMIKA]: ΔU=Q+W (W to praca NAD układem). pV=nRT, c_w=Q/(mΔT), C_p=C_V+R.
+  - [HYDROSTATYKA]: Δp=ρgΔh, F_wyp=ρV_zan g.
+  - [ELEKTROSTATYKA]: F_e=k q₁q₂/r², E=F_e/q. U=W/q, U=Ed. C=Q/U, C=ε_r ε_0 S/d, E_pot=CU²/2.
+  - [PRĄD]: I=ΔQ/Δt, R=U/I, R=ρ l/S, P=UI=I²R.
+  - [MAGNETYZM]: F=qvB sinα, F=IlB sinα. Φ_B=BS cosα, E=-ΔΦ_B/Δt.
+  - [OPTYKA]: 1/x + 1/y = 1/f, sin(α_gr)=n₁/n₂.
+  - [FIZYKA WSPÓŁCZESNA]: E₀=mc², E_f=hf=hc/λ, E_f=W_el+E_kin_max (W_el to praca wyjścia), λ=h/p, N(t)=N₀(1/2)^(t/T).
+
 1. ROZPOZNAWANIE INTENCJI UCZNIA:
    - NOWE ZADANIE: Zastosuj rygorystyczną "Złotą Strukturę Odpowiedzi" (opisana na końcu).
    - PYTANIE DODATKOWE / KONTYNUACJA: Odpowiedz w sposób naturalny i niezwykle łagodny. Rozwiej wątpliwości.
@@ -119,26 +135,44 @@ $$ Wzór\\_końcowy = \\text{podstawienie wszystkich liczb naraz} = \\text{gotow
   - REAKCJE JĄDROWE (MATURALNA KSIĘGOWOŚĆ): Przy rozpadach alfa, beta i sztucznych reakcjach jądrowych zawsze traktuj równanie jak prosty układ algebraiczny. Głośno i wyraźnie tłumacz zasadę: 'Suma liczb masowych (na górze) i atomowych (na dole) po lewej stronie równania musi być idealnie równa sumie po prawej stronie'. Zawsze pokazuj ten bilans w osobnym kroku, żeby uczeń sam znalazł brakujący pierwiastek.
   - ROZPADY BETA I NEUTRINA: Uczniowie nagminnie mylą rozpad beta minus z beta plus. Tłumacz to łopatologicznie: rozpad beta minus to 'zamiana neutronu w proton' (dlatego Z rośnie o 1, a elektron wylatuje z jądra), a beta plus to 'zamiana protonu w neutron'. Zawsze przypominaj o dopisaniu antyneutrina elektronowego do \\beta^- oraz neutrina do \\beta^+.
   - DEFICYT MASY (\\Delta m) I ENERGIA WIĄZANIA: Masz KATEGORYCZNY ZAKAZ liczenia deficytu masy w kilogramach i używania wzoru E=mc^2 z ogromnymi potęgami, chyba że polecenie wprost tego żąda! Korzystaj z 'maturalnej szybkiej ścieżki': licz deficyt w unitach (u), a następnie pomnóż wynik przez gotowy przelicznik 931,5 MeV/u. To najbezpieczniejsza droga, która eliminuje 90% błędów rachunkowych maturzystów.
-  - PRAWO ROZPADU PROMIENIOTWÓRCZEGO: Używaj wyłącznie przyjaznej dla licealisty formy z czasem połowicznego rozpadu: N = N_0 \\cdot (1/2)^{t/T} lub m = m_0 \\cdot (1/2)^{t/T}. Masz całkowity zakaz używania akademickiej formy z liczbą Eulera (e^{-\\lambda t}), o ile zadanie wyraźnie nie wymaga operowania na stałej rozpadu \\lambda.`;
+  - PRAWO ROZPADU PROMIENIOTWÓRCZEGO: Używaj wyłącznie przyjaznej dla licealisty formy z czasem połowicznego rozpadu: N = N_0 \\cdot (1/2)^{t/T} lub m = m_0 \\cdot (1/2)^{t/T}. Masz całkowity zakaz używania akademickiej formy z liczbą Eulera (e^{-\\lambda t}), o ile zadanie wyraźnie nie wymaga operowania na stałej rozpadu \\lambda.
+  
+`; // ${SVG_MASTER_PROMPT} - tymczasowo wyłączone grafiki
+
 
 // --- PROMPT 2: METODA SOKRATEJSKA ---
-const SOCRATIC_PROMPT = `Rola: Jesteś wyjątkowym mentorem fizyki z polskiego liceum. Stosujesz 'Metodę Sokratejską'. Twoim celem jest przygotowanie ucznia do matury rozszerzonej.
+const SOCRATIC_PROMPT = `Rola: Jesteś wybitnym mentorem fizyki z 20-letnim doświadczeniem. Twoim celem jest przeprowadzenie ucznia przez proces rozwiązywania zadania tak, aby na końcu czuł, że to ON je rozwiązał. Łączysz Metodę Sokratejską z aktywnym wsparciem (scaffolding).
 
-TWOJA NAJWAŻNIEJSZA, BEZWZGLĘDNA ZASADA:
-NIGDY NIE PODAWAJ GOTOWEGO ROZWIĄZANIA, WYNIKU KOŃCOWEGO ANI PEŁNEGO WYPROWADZENIA WZORU! 
-Twoim zadaniem jest zmuszenie ucznia do samodzielnego myślenia.
+TWOJA GŁÓWNA ZASADA:
+Nigdy nie podawaj gotowego, pełnego rozwiązania zadania ani wyniku liczbowego. Twoim zadaniem jest zadawanie pytań, które budują zrozumienie, oraz podawanie "brakujących narzędzi" (wzorów), gdy uczeń ich nie posiada.
 
-Zasady Metody Sokratejskiej, których musisz przestrzegać:
-1. TYLKO JEDNO PYTANIE NA RAZ: Nigdy nie zasypuj ucznia listą pytań. Zadawaj małe, logiczne pytania krok po kroku.
-2. ANALIZA POCZĄTKOWA: Kiedy uczeń wkleja nowe zadanie, przeczytaj je i zapytaj np.: "Dobrze, mamy ciekawe zadanie. Od jakiego absolutnego fundamentu fizycznego lub zasady powinniśmy tu wyjść według Ciebie?"
-3. DYSKRETNE NAPROWADZANIE: Jeśli uczeń utknie, nie podawaj mu gotowego wzoru. Daj mu wskazówkę, np.: "Pomyśl o siłach działających w pionie. Co musi równoważyć siłę ciężkości, żeby klocek nie spadł?".
-4. CHWALENIE ZA SUKCESY: Kiedy uczeń ułoży poprawne równanie lub dobrze odpowie, entuzjastycznie go pochwal ("Świetnie!", "Dokładnie tak!") i poprowadź do kolejnego kroku ("Mamy już wzór na siłę, co robimy z tym dalej, by wyliczyć czas?").
-5. OBLICZENIA ZOSTAW UCZNIOWI: Jeśli macie już gotowy wzór końcowy na literach, powiedz: "Rewelacja. Mamy wzór. Podstaw teraz dane i daj znać, jaki wynik liczbowy Ci wyszedł!". 
-6. WIZUALIZACJE: Używaj LaTeXa do wzorów wplatanych w tekst (jak $F = mg$), aby matematyka była czytelna. Stosuj polskie oznaczenia maturalne (CKE).
-7. ZAKAZ ZNAKU SUMY: Podobnie jak w normalnym trybie, unikaj akademickiego zapisu \\Sigma F. Mów o 'równoważeniu się sił' lub 'sile wypadkowej'.
+Strategia Mentorska (Praktyka Nauczycielska):
 
-Bądź cierpliwy, przyjazny i traktuj ucznia jak równego sobie badacza. Prowadź go za rękę przez mrok fizyki, ale to ON musi trzymać latarkę.`;
+1. IDENTYFIKACJA BLOKADY:
+   Zanim zaczniesz liczyć, upewnij się, że uczeń rozumie sytuację. Zapytaj: "Co tu się właściwie dzieje fizycznie? Widzisz to pod powiekami?". Jeśli uczeń nie wie, od czego zacząć, podpowiedz dział fizyki lub wielkie prawo (np. "Spróbujmy spojrzeć na to przez pryzmat energii").
 
+2. ZASADA "NARZĘDZIA":
+   Jeśli uczeń utknie na braku konkretnej wiedzy (nie zna wzoru, stałej, definicji), NIE DRĄŻ. Podaj mu to narzędzie natychmiast i przejdź do pytania o jego zastosowanie.
+   Przykład: "Jasne, ten wzór to $E_k = \frac{mv^2}{2}$. Skoro go już mamy, to jak go przekształcić, żeby wyciągnąć z niego prędkość $v$?".
+
+3. JEDNO PYTANIE / JEDEN KROK:
+   Zadawaj tylko jedno małe pytanie na raz. Prowadź ucznia po cienkiej nitce logiki. Nie zasypuj go teorią.
+
+4. SYMBOLE I STANDARDY (Polska):
+   Używaj polskich oznaczeń: $v$ (prędkość), $s$ (droga), $a_{do}$ (dośrodkowe), $F_g$ (ciężkości), $T$ (tarcie). Każdy symbol matematyczny i wzór MUSI być w LaTeX (między $ $).
+
+5. REAKCJA NA BŁĘDY:
+   Jeśli uczeń popełni błąd, nie mów "Źle". Powiedz: "Ciekawy trop, ale zobacz – gdyby tak było, to woda musiałaby płynąć pod górę. Co mogło pójść nie tak w Twoim rozumowaniu?".
+
+6. OBLICZENIA I WYNIK:
+   Gdy macie już wyprowadzony wzór na literach, powiedz: "Mamy to! To jest Twój wzór końcowy. Teraz Twoja kolej na magię kalkulatora – podstaw dane i powiedz, co Ci wyszło (pamiętaj o jednostce!)".
+
+Osobowość Mentora:
+Jesteś pasjonatem, który wierzy w ucznia. Używasz analogii z życia codziennego (samochody, sport, kuchnia). Jeśli uczeń dziękuje lub cieszy się z sukcesu, pogratuluj mu merytorycznie: "Właśnie tak myśli fizyk!".
+
+Gdy uczeń mówi "Nie wiem":
+1. Spróbuj analogii ("A gdybyś pchał szafę po dywanie zamiast po lodzie?").
+2. Jeśli nadal nie wie – podaj konkretną informację (np. definicję lub wzór) i zapytaj, jak ona zmienia sytuację w zadaniu.`;
 // 🔴 BARDZO WAŻNE DLA VERCELA 🔴
 // Środowisko testowe wymusza tutaj pusty klucz. 
 // Gdy kopiujesz ten kod do swojego VS Code, podmień poniższą linijkę na:
@@ -156,17 +190,23 @@ export default function App() {
     {
       role: 'ai',
       text: 'Witaj w Treningu Sokratejskim! 🧠 Nie znajdziesz tu gotowych rozwiązań. Moim celem jest zmusić Cię do myślenia. Wklej zadanie, a poprowadzę Cię przez nie krok po kroku za pomocą pytań pomocniczych. Od jakiego zadania dziś zaczynamy?'
-    } 
+    }
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('chat');
+  const [activeTab, setActiveTab] = useState(() => {
+    return localStorage.getItem('physitutor_tab') || 'chat';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('physitutor_tab', activeTab);
+  }, [activeTab]);
   const [katexLoaded, setKatexLoaded] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
 
   // Ta zmienna decyduje, co aktualnie wyświetlamy na ekranie:
   const activeMessages = activeTab === 'socratic' ? socraticMessages : messages;
-  
+
   const messagesContainerRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -209,18 +249,18 @@ export default function App() {
     const MAX_WIDTH = 1024;
     const MAX_HEIGHT = 1024;
     const reader = new FileReader();
-    
+
     reader.onload = (event) => {
       const img = new Image();
       img.onload = () => {
         let width = img.width; let height = img.height;
-        if (width > height) { if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; } } 
+        if (width > height) { if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; } }
         else { if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; } }
 
         const canvas = document.createElement('canvas');
         canvas.width = width; canvas.height = height;
         const ctx = canvas.getContext('2d');
-        
+
         ctx.fillStyle = '#FFFFFF';
         ctx.fillRect(0, 0, width, height);
         ctx.drawImage(img, 0, 0, width, height);
@@ -236,21 +276,21 @@ export default function App() {
 
   const callAI = async (userText, imageObj) => {
     setIsLoading(true);
-    
+
     // Sprawdzamy, czy jesteśmy w zakładce mentora
     const isSocratic = activeTab === 'socratic';
-    
+
     // Wybieramy odpowiednią historię i funkcję do jej aktualizacji
     const currentMessages = isSocratic ? socraticMessages : messages;
     const updateMessages = isSocratic ? setSocraticMessages : setMessages;
-    
+
     updateMessages(prev => [...prev, { role: 'user', text: userText, imageUrl: imageObj?.dataUrl }]);
     setInputValue('');
     setSelectedImage(null);
 
     const validHistory = [];
     let lastRole = null;
-    
+
     // Używamy historii z odpowiedniej zakładki
     currentMessages.slice(1).forEach(msg => {
       const currentRole = msg.role === 'ai' ? 'model' : 'user';
@@ -265,45 +305,59 @@ export default function App() {
     }
 
     // Dostosowujemy domyślny tekst dla zdjęć w zależności od trybu
-    const defaultImageText = isSocratic 
-      ? "Przeczytaj treść zadania ze zdjęcia. Jakie powinno być pierwsze pytanie pomocnicze?" 
+    const defaultImageText = isSocratic
+      ? "Przeczytaj treść zadania ze zdjęcia. Jakie powinno być pierwsze pytanie pomocnicze?"
       : "Przeczytaj treść zadania ze zdjęcia i rozwiąż je.";
-      
+
     const currentParts = [{ text: userText.trim() ? userText : defaultImageText }];
     if (imageObj) currentParts.push({ inlineData: { mimeType: imageObj.mimeType, data: imageObj.base64 } });
     validHistory.push({ role: 'user', parts: currentParts });
 
-    // WYBIERAMY ODPOWIEDNI PROMPT
-    const currentPrompt = isSocratic ? SOCRATIC_PROMPT : SYSTEM_PROMPT;
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-
     try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          contents: validHistory, 
-          systemInstruction: { parts: [{ text: currentPrompt }] } 
-        })
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error?.message || `Błąd serwera: ${response.status}`);
-      }
-      
-      const result = await response.json();
-      let aiText = result.candidates?.[0]?.content?.parts?.[0]?.text;
-      
-      if (aiText) {
-        // Zapisujemy odpowiedź AI do odpowiedniej zakładki
-        updateMessages(prev => [...prev, { role: 'ai', text: aiText }]);
+      if (isSocratic) {
+        // TRYB SOKRATEJSKI: Tylko model Flash, bez rysunków
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: validHistory,
+            systemInstruction: { parts: [{ text: SOCRATIC_PROMPT }] }
+          })
+        });
+
+        if (!response.ok) throw new Error(`Błąd serwera (Socratic): ${response.status}`);
+        const result = await response.json();
+        const aiText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (aiText) updateMessages(prev => [...prev, { role: 'ai', text: aiText }]);
+
+      } else {
+        // TRYB ROZWIĄZYWANIA: Model Flash do wszystkiego (Tekst/Obliczenia + Rysunki SVG)
+        const urlMain = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
+        const response = await fetch(urlMain, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: validHistory, systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] } })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error?.message || `Błąd serwera (Pro): ${response.status}`);
+        }
+
+        const result = await response.json();
+        const aiText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+        if (aiText) {
+          updateMessages(prev => [...prev, { role: 'ai', text: aiText }]);
+        }
       }
     } catch (error) {
       console.error("Szczegóły błędu:", error);
       updateMessages(prev => [...prev, { role: 'ai', text: `⚠️ Błąd techniczny: ${error.message}` }]);
-    } finally { 
-      setIsLoading(false); 
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -317,13 +371,33 @@ export default function App() {
     if (!katexLoaded || !window.katex) return <div className="text-cyan-600 animate-pulse font-mono text-sm tracking-widest">Inicjalizacja modułu matematycznego...</div>;
 
     const cb = '```';
-    // Naprawiono podwójne ukośniki psujące wyrażenia regularne (Oxc Parser Error)
     let clean = text.replace(/<frac>([^|}]*)[|}]?([^<]*)(<\/frac>|\})/g, '\\frac{$1}{$2}')
-                    .replace(/<sqrt>/g, '\\sqrt{').replace(/<\/sqrt>/g, '}');
-                 
+      .replace(/<sqrt>/g, '\\sqrt{').replace(/<\/sqrt>/g, '}');
+
+    // Rozszerzyliśmy podział o wyłapywanie bloków kodu SVG (zakomentowane SVG_MASTER_PROMPT)
+    // const parts = clean.split(/(\\$\\$[\\s\\S]*?\\$\\$|\\$[\\s\\S]*?\\$|\`\`\`svg[\\s\\S]*?\`\`\`)/g);
     const parts = clean.split(/(\$\$[\s\S]*?\$\$|\$[\s\S]*?\$)/g);
 
     return parts.map((part, i) => {
+
+      // 1. OBSŁUGA RYSUNKÓW SVG (TYMCZASOWO ZAKOMENTOWANE)
+      /*
+      if (part.startsWith('\`\`\`svg') && part.endsWith('\`\`\`')) {
+        // Czyścimy znaczniki markdown, zostawiając czysty kod wektorowy
+        const svgContent = part.replace(/^\`\`\`svg\\n?/i, '').replace(/\`\`\`$/i, '').trim();
+        return (
+          <div key={i} className="my-8 flex justify-center w-full bg-[#050B14]/80 p-4 md:p-6 rounded-2xl border border-cyan-500/40 shadow-[0_0_20px_rgba(34,211,238,0.15)] relative group">
+            <div className="absolute top-2 left-3 text-[10px] text-cyan-700 font-mono tracking-widest uppercase">Schemat_SVG</div>
+            <div
+              className="max-w-full w-full overflow-visible flex justify-center"
+              dangerouslySetInnerHTML={{ __html: svgContent }}
+            />
+          </div>
+        );
+      }
+      */
+
+      // 2. MATEMATYKA BLOKOWA
       if (part.startsWith('$$') && part.endsWith('$$')) {
         let math = part.slice(2, -2).trim();
         if (math.includes('\\\\') && !math.includes('\\begin{')) {
@@ -335,21 +409,25 @@ export default function App() {
         } catch (e) { return <div key={i} className="text-red-500 font-mono text-xs">{part}</div>; }
       }
 
+      // 3. MATEMATYKA W LINII
       if (part.startsWith('$') && part.endsWith('$')) {
         const math = part.slice(1, -1);
         try {
           const html = window.katex.renderToString(math, { displayMode: false, throwOnError: false });
-          return <span key={i} dangerouslySetInnerHTML={{ __html: html }} className="mx-1 text-cyan-200 drop-shadow-[0_0_3px_rgba(34,211,238,0.4)] inline-block align-middle font-serif" />;
+          return <span key={i} dangerouslySetInnerHTML={{ __html: html }} className="mx-1 text-cyan-200 drop-shadow-[0_0_3px_rgba(34,211,238,0.4)] font-serif" />;
         } catch (e) { return <span key={i} className="text-red-500 text-xs">{part}</span>; }
       }
 
+      // 4. ZWYKŁY TEKST I ZNACZNIKI MARKDOWN
       let textHtml = part.replace(new RegExp(cb + '[a-zA-Z]*\\n?', 'g'), '').replace(new RegExp(cb, 'g'), '');
       textHtml = textHtml
-        .replace(/</g, '&lt;').replace(/>/g, '&gt;') 
+        .replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/---/g, '')
         .replace(/\*\*([^*]+)\*\*/g, '<span class="text-cyan-400 font-bold drop-shadow-[0_0_5px_rgba(34,211,238,0.4)]">$1</span>')
-        .replace(/### (.*)/g, '<span class="block text-base font-bold text-purple-400 mt-4 mb-2 border-b border-purple-500/20 pb-1 uppercase tracking-wider flex items-center gap-2"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>$1</span>')
-        .replace(/## (.*)/g, '<span class="block text-lg font-bold text-cyan-400 mt-6 mb-2 uppercase tracking-widest">$1</span>')
-        .replace(/\n/g, '<br />'); 
+        .replace(/^#{4,6}\s+(.*?)\s*#*\s*$/gm, '<span class="block text-base font-bold text-cyan-200 mt-4 mb-2 uppercase tracking-wide">$1</span>')
+        .replace(/^###\s+(.*?)\s*#*\s*$/gm, '<span class="block text-base font-bold text-purple-400 mt-4 mb-2 border-b border-purple-500/20 pb-1 uppercase tracking-wider flex items-center gap-2"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>$1</span>')
+        .replace(/^##\s+(.*?)\s*#*\s*$/gm, '<span class="block text-lg font-bold text-cyan-400 mt-6 mb-2 uppercase tracking-widest">$1</span>')
+        .replace(/^#\s+(.*?)\s*#*\s*$/gm, '<span class="block text-xl font-bold text-cyan-300 mt-6 mb-2 uppercase tracking-widest">$1</span>')
+        .replace(/\n/g, '<br />');
 
       return <span key={i} dangerouslySetInnerHTML={{ __html: textHtml }} className="text-cyan-50/80 leading-relaxed font-sans text-sm md:text-base" />;
     });
@@ -363,186 +441,185 @@ export default function App() {
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(6, 182, 212, 0.3); border-radius: 10px; }
       `}</style>
 
-      <div className="flex h-screen w-full bg-[#020617] text-cyan-50 font-sans overflow-hidden selection:bg-cyan-900 selection:text-cyan-50">
-        
-        <div className="w-16 md:w-20 bg-slate-900/80 border-r border-cyan-500/20 flex flex-col items-center py-6 z-20 shrink-0 backdrop-blur-xl hidden md:flex">
-          <div className="flex h-10 w-10 bg-[#020617] border border-cyan-400 items-center justify-center rounded-xl mb-8 shadow-[0_0_10px_rgba(34,211,238,0.3)]">
-            <Activity className="w-5 h-5 text-cyan-400" />
+      <div className={`flex flex-col h-screen w-full font-sans overflow-hidden transition-colors duration-500 selection:bg-cyan-900 selection:text-cyan-50 ${activeTab === 'socratic' ? 'bg-[#0E0B16] text-purple-50' : 'bg-[#060D1A] text-cyan-50'}`}>
+
+        {/* TOP HEADER */}
+        <header className="flex-none pt-6 pb-4 px-6 md:px-12 z-20 flex items-center justify-between relative bg-black/10 backdrop-blur-md">
+
+          {/* Background Glow */}
+          <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] opacity-[0.12] pointer-events-none blur-[120px] rounded-full ${activeTab === 'socratic' ? 'bg-purple-500' : 'bg-cyan-500'}`}></div>
+
+          {/* LEFT: LOGO */}
+          <div className="flex items-center gap-3 z-10 w-1/3">
+            <div className={`flex h-10 w-10 border items-center justify-center rounded-xl shadow-lg ${activeTab === 'socratic' ? 'bg-[#150F24] border-purple-500/30' : 'bg-[#0A1628] border-cyan-500/30'}`}>
+              <Activity className={`w-5 h-5 ${activeTab === 'socratic' ? 'text-purple-400' : 'text-cyan-400'}`} />
+            </div>
+            <div className="hidden lg:flex items-center gap-3">
+              <h1 className="text-xl md:text-2xl font-black text-white tracking-[0.2em] uppercase flex items-center">
+                PHYSITUTOR
+              </h1>
+              <span className={`text-[10px] font-mono border px-2 py-0.5 rounded-md tracking-widest uppercase ${activeTab === 'socratic' ? 'border-purple-500/30 text-purple-300/70 bg-[#150F24]' : 'border-cyan-500/30 text-cyan-300/70 bg-[#0A1628]'}`}>V1.2</span>
+            </div>
           </div>
-          
-          <button 
-            onClick={() => setActiveTab('chat')}
-            className={`p-2.5 rounded-xl mb-4 transition-all group shadow-[0_0_10px_rgba(34,211,238,0.1)] ${activeTab === 'chat' ? 'bg-cyan-900/60 text-cyan-300 border border-cyan-400/50' : 'bg-[#020617]/50 text-cyan-700 border border-transparent hover:border-cyan-800 hover:text-cyan-500'}`}
-            title="Tłumacz AI"
-          >
-            <MessageSquare className="w-5 h-5 group-hover:scale-105 transition-transform" />
-          </button>
 
-          <button 
-            onClick={() => setActiveTab('socratic')}
-            className={`p-2.5 rounded-xl mb-4 transition-all group shadow-[0_0_10px_rgba(168,85,247,0.1)] ${activeTab === 'socratic' ? 'bg-purple-900/40 text-purple-300 border border-purple-400/50' : 'bg-[#020617]/50 text-cyan-700 border border-transparent hover:border-purple-800 hover:text-purple-400'}`}
-            title="Trening Sokratejski"
-          >
-            <Lightbulb className="w-5 h-5 group-hover:scale-105 transition-transform" />
-          </button>
-        </div>
+          {/* CENTER: TABS */}
+          <div className={`flex justify-center p-1.5 rounded-full border z-10 backdrop-blur-xl shadow-2xl ${activeTab === 'socratic' ? 'bg-[#150F24]/80 border-purple-500/20' : 'bg-[#0A1628]/80 border-cyan-500/20'}`}>
+            <button
+              onClick={() => setActiveTab('chat')}
+              className={`flex items-center justify-center gap-2.5 px-4 md:px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${activeTab === 'chat' ? 'bg-cyan-900/80 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.2)]' : 'text-slate-400 hover:text-cyan-200'}`}
+            >
+              <Sparkles className="w-4 h-4 shrink-0" />
+              <span className="hidden sm:inline">Rozwiązywanie</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('socratic')}
+              className={`flex items-center justify-center gap-2.5 px-4 md:px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${activeTab === 'socratic' ? 'bg-purple-900/80 text-purple-300 shadow-[0_0_15px_rgba(168,85,247,0.2)]' : 'text-slate-400 hover:text-purple-200'}`}
+            >
+              <Lightbulb className="w-4 h-4 shrink-0" />
+              <span className="hidden sm:inline">Trening Sokratejski</span>
+            </button>
+          </div>
 
-        <div className="flex-1 flex flex-col h-full overflow-hidden relative bg-[#020617]">
-          
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#06b6d408_1px,transparent_1px),linear-gradient(to_bottom,#06b6d408_1px,transparent_1px)] bg-[size:2rem_2rem] opacity-40 pointer-events-none z-0"></div>
+          {/* RIGHT: STATUS */}
+          <div className="hidden md:flex items-center justify-end space-x-3 z-10 w-1/3">
+            <div className={`w-1.5 h-1.5 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.8)] animate-pulse ${activeTab === 'socratic' ? 'bg-emerald-500' : 'bg-emerald-500'}`}></div>
+            <span className="text-xs font-mono tracking-[0.15em] uppercase text-slate-400 font-medium whitespace-nowrap">
+              {activeTab === 'socratic' ? 'FOCUS MODE' : 'CKE OPTIMIZED'}
+            </span>
+          </div>
+        </header>
 
-          <header className="p-4 md:px-8 border-b border-cyan-500/10 bg-slate-900/20 backdrop-blur-sm z-10 flex items-center justify-between shrink-0">
-            <div className="flex items-center gap-3">
-              <div className="md:hidden flex h-8 w-8 bg-[#020617] border border-cyan-400 items-center justify-center rounded-xl shadow-[0_0_10px_rgba(34,211,238,0.3)]">
-                <Activity className="w-4 h-4 text-cyan-400" />
+        {/* MAIN BODY */}
+        <div className="flex-1 flex flex-col relative min-h-0 z-10">
+
+          {/* HERO SECTION (If ONLY 1 message from AI and no user msg) */}
+          {activeMessages.length === 1 && activeMessages[0].role === 'ai' ? (
+            <div className="flex-1 flex flex-col items-center justify-center px-4 pb-20 text-center animate-in fade-in zoom-in-95 duration-700 z-10 w-full h-full">
+              <div className={`w-24 h-24 rounded-full flex items-center justify-center mb-8 border backdrop-blur-sm shadow-2xl ${activeTab === 'socratic' ? 'bg-[#1A1230]/60 border-purple-500/40 text-purple-400 shadow-[0_0_40px_rgba(168,85,247,0.15)]' : 'bg-[#0A1F30]/60 border-cyan-500/40 text-cyan-400 shadow-[0_0_40px_rgba(34,211,238,0.15)]'}`}>
+                {activeTab === 'socratic' ? <Lightbulb className="w-10 h-10" /> : <Sparkles className="w-10 h-10" />}
               </div>
-              <div>
-                <h1 className="text-lg md:text-xl font-bold text-cyan-50 tracking-widest uppercase drop-shadow-[0_0_5px_rgba(34,211,238,0.3)]">
-                  PhysiTutor <span className="text-purple-400 text-[10px] align-top font-mono ml-1">v1.1</span>
-                </h1>
-                <p className="text-[8px] md:text-[10px] font-mono tracking-widest uppercase">
-                  {activeTab === 'socratic' ? (
-                    <span className="text-purple-400/70">Trening Sokratejski</span>
-                  ) : (
-                    <span className="text-cyan-500/50">CKE Optimized • Auto-Compress</span>
-                  )}
-                </p>
-              </div>
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-6 drop-shadow-md tracking-wide">
+                {activeTab === 'socratic' ? 'Trening Sokratejski' : 'Rozwiązywanie Zadań'}
+              </h2>
+              <p className="text-slate-400 max-w-2xl text-base md:text-lg leading-relaxed font-light">
+                {activeMessages[0].text}
+              </p>
             </div>
+          ) : (
+            <div ref={messagesContainerRef} className="flex-1 overflow-y-auto w-full px-4 scroll-smooth custom-scrollbar pb-56 z-10">
 
-            {/* ZAKŁADKI MOBILNE (Widoczne tylko na telefonach) */}
-            <div className="flex md:hidden gap-1 sm:gap-2">
-              <button 
-                onClick={() => setActiveTab('chat')} 
-                className={`p-2 rounded-xl transition-all shadow-sm ${activeTab === 'chat' ? 'bg-cyan-900/60 text-cyan-300 border border-cyan-500/40' : 'bg-slate-900/50 text-cyan-700 border border-transparent'}`}
-                title="Tłumacz AI"
-              >
-                <MessageSquare className="w-5 h-5" />
-              </button>
-              <button 
-                onClick={() => setActiveTab('socratic')} 
-                className={`p-2 rounded-xl transition-all shadow-sm ${activeTab === 'socratic' ? 'bg-purple-900/50 text-purple-300 border border-purple-500/40' : 'bg-slate-900/50 text-cyan-700 border border-transparent'}`}
-                title="Trening Sokratejski"
-              >
-                <Lightbulb className="w-5 h-5" />
-              </button>
-            </div>
+              {/* REGULAR CHAT MESSAGES */}
+              <div className="max-w-4xl mx-auto space-y-8 py-8">
+                {activeMessages.slice(1).map((msg, idx) => (
+                  <div key={idx} className={`w-full flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`flex gap-4 md:gap-6 max-w-[90%] md:max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
 
-            <div className="hidden md:flex gap-2 font-mono text-[10px] text-cyan-600/70">
-              <span className="border border-cyan-900/50 px-2 py-0.5 rounded">SYS: OK</span>
-            </div>
-          </header>
+                      {msg.role === 'ai' && (
+                        <div className={`w-8 h-8 md:w-10 md:h-10 rounded-2xl flex items-center justify-center shrink-0 border shadow-lg ${activeTab === 'socratic' ? 'bg-[#150F24] border-purple-500/30 text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.15)]' : 'bg-[#0A1628] border-cyan-500/30 text-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.15)]'}`}>
+                          {activeTab === 'socratic' ? <Lightbulb className="w-4 h-4 md:w-5 md:h-5" /> : <Sparkles className="w-4 h-4 md:w-5 md:h-5" />}
+                        </div>
+                      )}
 
-          <div className="flex-1 flex flex-col relative min-h-0">
-            <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 scroll-smooth custom-scrollbar z-10">
-              {activeMessages.map((msg, idx) => (
-                <div key={idx} className={`w-full ${msg.role === 'ai' ? 'py-6 md:py-8 bg-slate-900/40 border-y border-cyan-500/10 mb-6' : 'mb-6 px-4 md:px-8'}`}>
-                  <div className={`max-w-4xl mx-auto flex ${msg.role === 'user' ? 'justify-end' : 'gap-4 md:gap-6'}`}>
-                    
-                    {msg.role === 'ai' && (
-                      <div className={`w-8 h-8 md:w-10 md:h-10 rounded-xl bg-[#020617] border flex items-center justify-center shrink-0 shadow-lg ${activeTab === 'socratic' ? 'border-purple-500/40 text-purple-400 shadow-[0_0_10px_rgba(168,85,247,0.2)]' : 'border-cyan-500/40 text-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.2)]'}`}>
-                        {activeTab === 'socratic' ? <Lightbulb className="w-5 h-5" /> : <Sparkles className="w-5 h-5" />}
+                      <div className={`${msg.role === 'user' ? 'bg-white/5 border border-white/10 rounded-3xl rounded-tr-sm p-4 md:p-5 text-slate-100 shadow-xl backdrop-blur-sm' : 'pt-2 text-slate-200 w-full'}`}>
+                        {msg.imageUrl && (
+                          <img src={msg.imageUrl} alt="Skan" className="max-w-sm w-full rounded-xl border border-white/10 mb-4 shadow-lg mix-blend-screen" />
+                        )}
+
+                        {msg.role === 'user' ? (
+                          <div className="text-base leading-relaxed break-words">{msg.text}</div>
+                        ) : (
+                          <div className="text-base leading-relaxed space-y-4 w-full break-words">{renderText(msg.text)}</div>
+                        )}
                       </div>
-                    )}
 
-                    <div className={`${msg.role === 'user' ? 'max-w-2xl bg-cyan-900/40 border border-cyan-500/30 rounded-3xl rounded-tr-sm p-5 shadow-sm' : 'flex-1 overflow-hidden pt-1 md:pt-2'}`}>
-                      {msg.imageUrl && (
-                        <img src={msg.imageUrl} alt="Skan" className="max-w-sm w-full rounded-xl border border-cyan-500/30 mb-4 shadow-[0_0_20px_rgba(34,211,238,0.15)] mix-blend-screen" />
-                      )}
-                      
-                      {msg.role === 'user' ? (
-                        <div className="text-base md:text-lg text-cyan-50 leading-relaxed drop-shadow-sm">
-                          {msg.text}
-                        </div>
-                      ) : (
-                        <div className="text-sm md:text-base leading-relaxed text-cyan-50">
-                          {renderText(msg.text)}
-                        </div>
-                      )}
-                    </div>
-                    
-                  </div>
-                </div>
-              ))}
-              
-              {isLoading && (
-                <div className="w-full py-6 md:py-8 bg-slate-900/40 border-y border-cyan-500/10 animate-in fade-in duration-500 mb-6">
-                  <div className="max-w-4xl mx-auto px-4 md:px-8 flex gap-4 md:gap-6">
-                    <div className={`w-8 h-8 md:w-10 md:h-10 rounded-xl bg-[#020617] border flex items-center justify-center shrink-0 shadow-lg ${activeTab === 'socratic' ? 'border-purple-500/40 text-purple-400 shadow-[0_0_10px_rgba(168,85,247,0.2)]' : 'border-cyan-500/40 text-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.2)]'}`}>
-                       {activeTab === 'socratic' ? <Lightbulb className="w-5 h-5 animate-pulse" /> : <Sparkles className="w-5 h-5 animate-pulse" />}
-                    </div>
-                    <div className="flex-1 flex items-center gap-3 pt-1 md:pt-2">
-                      <Loader2 className={`w-5 h-5 animate-spin ${activeTab === 'socratic' ? 'text-purple-500' : 'text-cyan-500'}`} />
-                      <span className={`text-sm font-mono tracking-widest uppercase animate-pulse ${activeTab === 'socratic' ? 'text-purple-400/80' : 'text-cyan-500/80'}`}>
-                        {activeTab === 'socratic' ? 'Mentor analizuje...' : 'Rozwiązuję...'}
-                      </span>
                     </div>
                   </div>
-                </div>
-              )}
-              
-              <div className="h-40 md:h-48 w-full shrink-0"></div>
-            </div>
+                ))}
 
-            <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 z-20 bg-gradient-to-t from-[#020617] via-[#020617]/95 to-transparent pt-32 pointer-events-none">
-              <div className="max-w-4xl mx-auto relative pointer-events-auto">
-                
-                {selectedImage && (
-                  <div className="absolute -top-24 left-4 bg-slate-900/90 p-1.5 rounded-lg border border-cyan-500/40 z-30 animate-in slide-in-from-bottom-2">
-                    <div className="relative group">
-                      <img src={selectedImage.dataUrl} alt="Podgląd" className="h-16 w-auto rounded mix-blend-screen" />
-                      <button 
-                        type="button" 
-                        onClick={() => setSelectedImage(null)}
-                        className="absolute -top-2 -right-2 bg-red-500/80 text-white rounded p-0.5 hover:bg-red-400 transition-colors"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
+                {isLoading && (
+                  <div className="w-full flex justify-start animate-in fade-in duration-300">
+                    <div className="flex gap-4 md:gap-6 max-w-3xl">
+                      <div className={`w-8 h-8 md:w-10 md:h-10 rounded-2xl flex items-center justify-center shrink-0 border shadow-lg ${activeTab === 'socratic' ? 'bg-[#150F24] border-purple-500/30 text-purple-400' : 'bg-[#0A1628] border-cyan-500/30 text-cyan-400'}`}>
+                        {activeTab === 'socratic' ? <Lightbulb className="w-4 h-4 animate-pulse md:w-5 md:h-5" /> : <Sparkles className="w-4 h-4 animate-pulse md:w-5 md:h-5" />}
+                      </div>
+                      <div className="pt-2 flex items-center gap-3">
+                        <Loader2 className={`w-5 h-5 animate-spin ${activeTab === 'socratic' ? 'text-purple-500' : 'text-cyan-500'}`} />
+                        <span className={`text-sm font-mono tracking-[0.2em] uppercase animate-pulse ${activeTab === 'socratic' ? 'text-purple-400/80' : 'text-cyan-500/80'}`}>
+                          {activeTab === 'socratic' ? 'Analizuję...' : 'Analizuję...'}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 )}
-
-                <form onSubmit={handleSendMessage} className={`relative flex items-center gap-2 bg-[#050B14]/80 backdrop-blur-xl border rounded-xl p-1.5 shadow-[0_0_15px_rgba(6,182,212,0.05)] ${activeTab === 'socratic' ? 'border-purple-500/30' : 'border-cyan-500/20'}`}>
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className={`p-2.5 rounded-lg transition-all ${activeTab === 'socratic' ? 'text-purple-400 hover:text-purple-300 hover:bg-purple-900/20' : 'text-cyan-600 hover:text-cyan-400 hover:bg-cyan-900/20'}`}
-                    title="Załącz zdjęcie"
-                  >
-                    <Camera className="w-5 h-5" />
-                  </button>
-                  <input 
-                    type="file" 
-                    ref={fileInputRef} 
-                    onChange={handleImageUpload} 
-                    accept="image/*" 
-                    className="hidden" 
-                  />
-
-                  <textarea
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSendMessage(e);
-                      }
-                    }}
-                    placeholder={activeTab === 'socratic' ? "Odpowiedz mentorowi..." : "Wklej treść zadania lub zrób zdjęcie..."}
-                    className="w-full bg-transparent px-3 py-2 text-cyan-50 resize-none h-[44px] focus:outline-none font-sans text-sm placeholder-cyan-900/60 custom-scrollbar"
-                  />
-                  
-                  <button
-                    type="submit"
-                    disabled={isLoading || (!inputValue.trim() && !selectedImage)}
-                    className={`p-2.5 rounded-lg transition-all disabled:opacity-30 shadow-md ${activeTab === 'socratic' ? 'bg-purple-600 hover:bg-purple-500 text-white disabled:bg-purple-900 shadow-[0_0_8px_rgba(168,85,247,0.3)]' : 'bg-cyan-600 hover:bg-cyan-500 text-[#020617] disabled:bg-cyan-900 shadow-[0_0_8px_rgba(34,211,238,0.2)]'}`}
-                  >
-                    <Send className="w-5 h-5 ml-0.5" />
-                  </button>
-                </form>
               </div>
+              {/* Ostatni element paddingu */}
+              <div className="h-20 w-full shrink-0"></div>
             </div>
+          )}
+
+          {/* BOTTOM INPUT AREA */}
+          <div className={`absolute bottom-0 left-0 right-0 px-4 pb-6 md:pb-8 pt-32 flex flex-col items-center justify-end pointer-events-none z-20 bg-gradient-to-t to-transparent ${activeTab === 'socratic' ? 'from-[#0E0B16] via-[#0E0B16]/95' : 'from-[#060D1A] via-[#060D1A]/95'}`}>
+
+            {selectedImage && (
+              <div className={`p-2 rounded-2xl border mb-4 animate-in slide-in-from-bottom-4 pointer-events-auto relative shadow-2xl backdrop-blur-xl ${activeTab === 'socratic' ? 'bg-[#150F24] border-purple-500/20' : 'bg-[#0A1628] border-cyan-500/20'}`}>
+                <img src={selectedImage.dataUrl} alt="Podgląd" className="h-24 w-auto rounded-xl mix-blend-screen" />
+                <button
+                  type="button"
+                  onClick={() => setSelectedImage(null)}
+                  className="absolute -top-3 -right-3 bg-red-500 hover:bg-red-400 border border-white/20 text-white rounded-full p-1.5 transition-colors shadow-lg"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+
+            <form onSubmit={handleSendMessage} className={`w-full max-w-[900px] relative flex items-center bg-white/5 backdrop-blur-3xl border rounded-[32px] p-2 pl-4 pointer-events-auto transition-all duration-300 shadow-2xl ${activeTab === 'socratic' ? 'border-purple-500/20 focus-within:bg-[#150F24]/90 focus-within:border-purple-500/40 focus-within:shadow-[0_0_30px_rgba(168,85,247,0.15)]' : 'border-cyan-500/20 focus-within:bg-[#0A1628]/90 focus-within:border-cyan-500/40 focus-within:shadow-[0_0_30px_rgba(6,182,212,0.15)]'}`}>
+
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="p-3 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors shrink-0"
+                title="Dodaj skan zadania"
+              >
+                <Camera className="w-6 h-6" />
+              </button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleImageUpload}
+                accept="image/*"
+                className="hidden"
+              />
+
+              <textarea
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage(e);
+                  }
+                }}
+                rows={1}
+                placeholder={activeTab === 'socratic' ? "Odpowiedź dla mentora..." : "Wpisz równanie lub wklej treść..."}
+                className="flex-1 bg-transparent px-4 py-3.5 text-slate-100 resize-none min-h-[52px] md:text-base text-sm focus:outline-none placeholder-slate-500 custom-scrollbar leading-relaxed"
+              />
+
+              <button
+                type="submit"
+                disabled={isLoading || (!inputValue.trim() && !selectedImage)}
+                className={`p-3.5 rounded-full transition-all duration-300 disabled:opacity-30 shadow-lg shrink-0 ${activeTab === 'socratic' ? 'bg-purple-600 hover:bg-purple-500 text-white disabled:bg-[#1A1230] disabled:text-slate-500' : 'bg-cyan-600 hover:bg-cyan-500 text-slate-900 font-bold disabled:bg-[#0A1628] disabled:text-slate-500'}`}
+              >
+                <Send className="w-5 h-5 ml-0.5" />
+              </button>
+            </form>
+
+            <div className="mt-6 text-[9px] md:text-[10px] text-slate-500/70 tracking-[0.2em] font-bold uppercase text-center pointer-events-auto font-sans">
+              PHYSITUTOR AI MOŻE POPEŁNIAĆ BŁĘDY.
+            </div>
+
           </div>
+
         </div>
       </div>
     </>
