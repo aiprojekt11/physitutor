@@ -315,8 +315,8 @@ export default function App() {
 
     try {
       if (isSocratic) {
-        // TRYB SOKRATEJSKI: Tylko model Flash, bez rysunków
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+        // TRYB SOKRATEJSKI: Model Flash Lite dla maksymalnej responsywności i odporności na piki ruchu (High Demand)
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`;
         const response = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -326,14 +326,17 @@ export default function App() {
           })
         });
 
-        if (!response.ok) throw new Error(`Błąd serwera (Socratic): ${response.status}`);
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error?.message || `Błąd serwera API (Socratic): ${response.status}`);
+        }
         const result = await response.json();
         const aiText = result.candidates?.[0]?.content?.parts?.[0]?.text;
         if (aiText) updateMessages(prev => [...prev, { role: 'ai', text: aiText }]);
 
       } else {
-        // TRYB ROZWIĄZYWANIA: Model Flash do wszystkiego (Tekst/Obliczenia + Rysunki SVG)
-        const urlMain = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+        // TRYB ROZWIĄZYWANIA: Model Flash Lite do wszystkiego (odporny na przeciążenia serwerów Google)
+        const urlMain = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`;
 
         const response = await fetch(urlMain, {
           method: 'POST',
